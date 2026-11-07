@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Handsontable with Formulas (named expressions #1)</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="/TEST/CSS/handsontable.min.css" />
+        <link rel="stylesheet" href="/TEST/CSS/ht-theme-main.min.css" />
+        <script src="/TEST/JavaScript/handsontable.full.min.js"></script>
+        <script src="/TEST/JavaScript/hyperformula.full.min.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+
+                const data = [
+                  ['Travel ID', 'Destination', 'Base price', 'Price with extra cost'],
+                  ['154', 'Rome', 400, '=ROUND(ADDITIONAL_COST+C2,0)'],
+                  ['155', 'Athens', 300, '=ROUND(ADDITIONAL_COST+C3,0)'],
+                  ['156', 'Warsaw', 150, '=ROUND(ADDITIONAL_COST+C4,0)']
+                ];
+
+                const container = document.querySelector('#example-named-expressions1');
+                const hot = new Handsontable(container, {
+                  data,
+                  colHeaders: true,
+                  rowHeaders: true,
+                  height: 'auto',
+                  formulas: {
+                    engine: HyperFormula,
+                    namedExpressions: [
+                      {
+                        name: 'ADDITIONAL_COST',
+                        expression: 125.25
+                      }
+                    ]
+                  },
+                  autoWrapRow: true,
+                  autoWrapCol: true,
+                  licenseKey: 'non-commercial-and-evaluation'
+                });
+
+                const input = document.getElementById('named-expressions-input');
+                const formulasPlugin = hot.getPlugin('formulas');
+                const button = document.getElementById('named-expressions-button');
+
+                button.addEventListener('click', () => {
+                  formulasPlugin.engine?.changeNamedExpression('ADDITIONAL_COST', input.value);
+                  hot.render();
+                });
+            });
+        </script>
+    </head>
+    <body>
+        <div class="example-controls-container">
+          <div class="controls">
+            <input id="named-expressions-input" type="text" value="=10 * Sheet1!$A$2" />
+            <button id="named-expressions-button">Calculate the price</button>
+          </div>
+        </div>
+        <div id="example-named-expressions1" class="ht-theme-main"></div>    </body>
+</html>

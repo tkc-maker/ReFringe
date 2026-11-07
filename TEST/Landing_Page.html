@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<!--
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/ClientSide/html.html to edit this template
+-->
+<html>
+    <head>
+        <title>Refringe.org Landing Page</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="refresh" content="5; url=/TEST/Login/Login.php">
+        <style>
+            div{
+                background-image: url('/TEST/Images/word_salad.png');
+                background-size: 80% 900px; /* Makes the background image cover the entire body */
+                background-repeat: no-repeat; /* Prevents the background image from repeating */
+                background-position: center center; /* Centers the background image */
+                
+                width: 100%;
+                height: 900px;
+            }
+            .random-word{
+                position: absolute;
+                font-size: 40px;
+                font-weight: bold;
+                color: red;
+                background-color: #ffffff;
+            }
+        </style>
+        <script src="/TEST/JavaScript/JQuery371.js"></script>     
+        <script>             
+            $(function() {
+                const words = ['reacclimate', 'reach', 'reacquaint', 'react', 'read', 'ready', 'reaffirm', 'realign', 'reFringe',
+                    'realize', 'reallocate', 'reanimate', 'reappraise', 'rearrange', 'rearticulate', 'reason', 'reassemble', 'ReFringe',
+                    'reassert', 'reassess', 'reassure', 'reawaken', 'rebalance', 'rebirth', 'rebound', 'rebuild', 'recalibrate', 'reFringe !!',
+                    'recall', 'recapture', 'receive', 'recent', 'recharge', 'reciprocate', 'recite', 'reckon', 'reclaim', 'ReFringe !!!',
+                    'reclassify', 'recline', 'recognize', 'recommend', 'recommit', 'recompile', 'recompose', 'reconceive', '* reFringe *',
+                    'reconceptualize', 'reconcile', 'reconfigure', 'reconnect', 'reconsider', 'reconstitute', 'reconstruct', '** ReFringe **',
+                    'recontextualize', 'reconvene', 'record', 'recover', 'recreate', 'recultivate', 'recycle', 'redeem', '-- reFringe --',
+                    'redefine', 'redesign', 'redesignate', 'redevelop', 'redirect', 'rediscover', 'redistribute', 'redo', '--- ReFringe ---',
+                    'reduce', 'reemerge', 'reemphasize', 'reenable', 'reenact', 'reenergize', 'reenforce', 'reengage', 'reFringe ?',
+                    'reenter', 'reenvisage', 'reestablish', 'reevaluate', 'reexamine', 'refashion', 'refer', 'refill', 'ReFringe ??',
+                    'refine', 'refit', 'reflect', 'reform', 'refract', 'refrain', 'refresh', 'refuge', 'refugee', 'refurbish', '> reFringe <',
+                    'refute', 'regain', 'regale', 'regard', 'regenerate', 'region', 'regroup', 'regularize', 'rehabilitate', '>>> ReFringe <<<',
+                    'rehearse', 'reignite', 'reimagine', 'reinforce', 'reintegrate', 'reintroduce', 'reinvent', 'reinvigorate', '& reFringe', 
+                    'reiterate', 'reject', 'rejoice', 'rejuvenate', 'rekindle', 'relabel', 'relate', 'relationships', 'relaunch', '&& ReFringe', 
+                    'relearn', 'release', 'relevant', 'reliable', 'relieve', 'relight', 'relive', 'remain', 'remake', 'remark', '(refringe)', 
+                    'remedy', 'remember', 'remind', 'reminisce', 'remodel', 'remold', 'renaissance', 'render', 'rendezvous', '((reFringe))', 
+                    'renegotiate', 'renew', 'renovate', 'reopen', 'reorganize', 'repair', 'repeat', 'replace', 'replenish', '(((ReFringe)))', 
+                    'reply', 'report', 'represent', 'reprint', 'reprise', 'reproduce', 'repurpose', 'request', 'rescue', '5 x reFringe', 
+                    'research', 'resemble', 'reserve', 'reset', 'reshape', 'reside', 'resilient', 'resist', 'resolve', '10 x ReFringe', 
+                    'resonate', 'resort', 'resourcefulness', 'resources', 'respect', 'respite', 'respond', 'restart', 'restore', 'info@reFringe.org', 
+                    'restructure', 'result', 'resume', 'resurgence', 'resurrect', 'retain', 'retell', 'rethink', 'retrace', '{reFringe}', 
+                    'retrieve', 'return', 'reunify', 'reunite', 'revamp', 'reveal', 'revel', 'revere', 'reverse', 'review', '{{{ReFringe}}}', 
+                    'revise', 'revisit', 'revitalize', 'revive', 'revolve', 'reward', 'rewrite', 'reFRINGE'];
+                const $myDiv = $('#divImg');
+
+                function getRandomWord() {
+                    const randomIndex = Math.floor(Math.random() * words.length);
+                    return words[randomIndex];
+                }
+
+                function setRandomWordSize(){
+                    const randomSize = (Math.floor(Math.random() * 10) * 5) + 40;
+                    $('.random-word').css('font-size', randomSize + 'px');
+                }
+                
+                function setRandomWordColor(){
+                    const randomColor = Math.floor(Math.random() * 10);
+                    const colors = ['burlywood', 'coral', 'darkorange', 'darkturquoise', 'deeppink', 
+                        'dodgerblue', 'lawngreen', 'orchid', 'firebrick', 'gold'];
+                    $('.random-word').css('color', colors[randomColor]);
+                }
+
+                function getRandomPosition(max) {
+                    return Math.floor(Math.random() * max);
+                }
+
+                function placeRandomWord() {
+                    const word = getRandomWord();
+                    const $span = $('<span>').text(word).addClass('random-word');
+
+                    $('#divImg .random-word').text("");
+                    $myDiv.append($span);
+                    
+                    setRandomWordSize();
+                    setRandomWordColor();
+                    
+                    const maxWidth = $myDiv.width() - $span.width();
+                    const maxHeight = $myDiv.height() - $span.height();
+
+                    const xPos = getRandomPosition(maxWidth);
+                    const yPos = getRandomPosition(maxHeight);
+
+                    $span.css({ left: xPos + 'px', top: yPos + 'px' });
+                }
+
+                //Place a random word every 2 seconds (2000 milliseconds):
+                setInterval(placeRandomWord, 2000);
+            });
+        </script>
+    </head>
+    <body>
+        <div id="divImg"></div>
+    </body>
+</html>

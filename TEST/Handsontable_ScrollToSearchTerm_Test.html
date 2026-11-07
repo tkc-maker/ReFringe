@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="/TEST/CSS/handsontable.min.css?v=15.2" />
+        <link rel="stylesheet" href="/TEST/CSS/ht-theme-main.min.css?v=15.2" />
+        <style>
+            .yellowit {
+                background-color: yellow;
+                color: black;
+            }
+        </style>
+        <script src="/TEST/JavaScript/handsontable.full.min.js?v=15.2"></script>
+        <script src="/TEST/JavaScript/JQuery371.js"></script>
+        
+        <script>             
+            $(function() {
+                const container = document.querySelector('#divSearchResults');
+
+                const hot = new Handsontable(container, {
+                    data: [
+                        ['John Doe', 'Lorem ipsum dolor sit amet,\nconsectetur adipiscing elit.\nPraesent eget tortor sed justo consequat.\nSuspendisse quis leo sit amet.'],
+                        ['Jane Smith', 'Quisque ac arcu non arcu pulvinar\ncongue vitae et risus.\nLorem ipsum dolor sit amet,\nproin vehicula enim.'],
+                        ['Alice Johnson', 'Proin vehicula enim nec lectus convallis vestibulum.\nLorem ipsum dolor sit amet,\ndolor sit.'],
+                        ['Bob Brown', 'Suspendisse potenti.\nCurabitur at orci non leo facilisis.\nLorem ipsum dolor sit amet.']
+                    ],
+                    colHeaders: ['Name', 'Description'],
+                    rowHeaders: true,
+                    columnSorting: true, // Enable sorting
+                    filters: true,
+                    dropdownMenu: true,
+                    columns: [
+                        { type: 'text' }, // Name column
+                        { type: 'text', renderer: customRenderer} // Description column
+                    ],
+                    licenseKey: 'non-commercial-and-evaluation'
+                });
+
+                let isFiltering = false; //To prevent recursion in the hook.
+
+                hot.addHook('afterFilter', () => {
+                    if (isFiltering) return;
+
+                    const filtersPlugin = hot.getPlugin('filters');
+                    const conditions = filtersPlugin.exportConditions().find(condition => condition.column === 1).conditions[0];
+
+                    //It is possible that this hook could run
+                    //before "conditions"have been assigned:
+                    if (!conditions || conditions.length === 0) {
+                        return;
+                    }
+
+                    isFiltering = true;
+                    
+                    var aryMatches = findMatchingCell(hot, conditions);
+
+                    if (aryMatches !== []) {
+                        for(var i = 0; i < aryMatches.length; i++){                            
+                            hot.render();
+
+                            //Highlight and scroll to the matching line:
+                            scrollToMatchingLine(aryMatches[i].row, aryMatches[i].col, aryMatches[i].match);
+                        }
+                     }
+
+                    isFiltering = false;
+                });
+
+                function findMatchingCell(hotInstance, conditions) {
+                    const data = hotInstance.getData();
+                    const descriptionColumnIndex = 1; //Assuming the "Description" column is column 1.
+
+                    var returnValue = [];
+                    for (let renderedRowIndex = 0; renderedRowIndex < hotInstance.countRows(); renderedRowIndex++) {
+                        const cellValue = data[renderedRowIndex][descriptionColumnIndex];
+
+                        if (
+                            cellValue &&
+                            conditions &&
+                            conditions.name === 'contains' &&
+                            conditions.args[0] // Ensure there’s a valid argument
+                        ) {
+                            const searchText = conditions.args[0]; // The value to search for
+
+                            if (cellValue.toLowerCase().includes(searchText.toLowerCase())) {
+                                returnValue.push({ row: renderedRowIndex, col: descriptionColumnIndex, match: searchText });
+                            }
+                        }
+                    }
+                    return returnValue;
+                }
+
+                function scrollToMatchingLine(row, col, searchText) {
+                    const cellElement = hot.getCell(row, col);
+
+                    if (cellElement) {
+                        const regex = new RegExp(`(${searchText})`, 'gi');
+
+                        // Debugging: Ensure the content matches searchText
+                        const originalContent = cellElement.innerHTML;
+
+                        // Highlight matching content
+                        const highlightedContent = originalContent.replace(regex, '<span class="yellowit">$1</span>');
+
+                        hot.setDataAtCell(row, col, highlightedContent); //Update the cell data.
+                        hot.render(); //Force Handsontable to re-render the table.
+
+                        // Style for scrolling
+                        hot.getCell(row, col).style.overflowY = 'auto';
+                        hot.getCell(row, col).style.maxHeight = '100px'; // Adjust height
+
+                        // Scroll to highlighted match
+                        const highlightElement = hot.getCell(row, col).querySelector('.yellowit');
+
+                        if (highlightElement) {
+                            highlightElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                    }
+                }
+
+                function customRenderer(instance, td, row, col, prop, value, cellProperties) {
+                    // Clear the existing content
+                    Handsontable.dom.empty(td);
+
+                    // Set new innerHTML
+                    td.innerHTML = `${value}`; // Format as bold
+                    return td;
+                }
+                
+                $('#btnClearVisibleHighlights').on('click', function(){
+                    const descriptionColumnIndex = 1; //Assuming the "Description" column is column 1.
+
+                    for (let renderedRowIndex = 0; renderedRowIndex < hot.countRows(); renderedRowIndex++) {
+                        const cellElement = hot.getCell(renderedRowIndex, descriptionColumnIndex); //Get the cell DOM element.
+
+                        if(cellElement){
+                            const cellText = cellElement.innerText; //Extract raw text.
+                            hot.setDataAtCell(renderedRowIndex, descriptionColumnIndex, cellText); //Update the cell data.
+                            hot.render(); //Force Handsontable to re-render the table.
+                        }
+
+                    }
+                });
+                
+                $('#btnClearCriteria').on('click', function(){
+                    //Clear search results:
+                    const searchPlugin = hot.getPlugin('search');
+                    searchPlugin.query(''); //Clear the search query.
+
+                    //Clear filter conditions:
+                    const filtersPlugin = hot.getPlugin('filters');
+                    filtersPlugin.clearConditions(); //Remove filter conditions.
+                    isFiltering = true;
+                    filtersPlugin.filter(); //Apply cleared filters.
+                    isFiltering = false;
+                    
+                    //Re-render the table:
+                    hot.render();
+
+//                    //Restore hidden rows:
+//                    const hiddenRowsPlugin = hot.getPlugin('hiddenRows');
+//                    hiddenRowsPlugin.hideRows([]); //Reset hidden rows.
+//                    hiddenRowsPlugin.enablePlugin();
+//                    
+//                    //Re-render the table:
+//                    hot.render();
+                });
+
+            });
+        </script>
+    </head>
+    <body>
+        <div id="divSearchResults" class="ht-theme-main-dark"></div>
+        <div id="buttons">
+            <input type="button" id="btnClearVisibleHighlights" value="Clear Visible Highlights"/>
+            <input type="button" id="btnClearCriteria" value="Clear Criteria"/>            
+        </div>
+    </body>
+</html>

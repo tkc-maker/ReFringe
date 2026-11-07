@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="/TEST/CSS/handsontable.min.css" />
+        <link rel="stylesheet" href="/TEST/CSS/ht-theme-main.min.css" />
+        <script src="/TEST/JavaScript/handsontable.full.min.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const container = document.querySelector('#example');
+                const hot = new Handsontable(container, {
+                  data: [
+                    ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
+                    ['2019', 10, 11, 12, 13],
+                    ['2020', 20, 11, 14, 13],
+                    ['2021', 30, 15, 12, 13]
+                  ],
+                  rowHeaders: true,
+                  colHeaders: true,
+                  height: 'auto',
+                  autoWrapRow: true,
+                  autoWrapCol: true,
+                  licenseKey: 'non-commercial-and-evaluation' // for non-commercial use only
+                });
+            });
+        </script>
+    </head>
+    <body>
+        <div id="example" class="")></div>
+
+    </body>
+</html>
