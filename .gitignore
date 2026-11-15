@@ -1,0 +1,53 @@
+# macOS
+.DS_Store
+
+# NetBeans
+nbproject/private/
+build/
+dist/
+
+# Logs
+*.log
+logs/
+
+# Credentials
+TEST/Static_Classes/Constants.php
+TEST/Utilities/mail_utilities.php
+
+# Uploads
+uploads/
+
+# Cache
+cache/
+tmp/
+
+# Development Notes
+"Tareas Diarias"/
+
+# Node packages (if used)
+node_modules/
+
+# Composer dependencies (optional)
+TEST/vendor/
+
+# Database dumps
+*.sql
+*.dump
+*.backup
+
+# Editor files
+.vscode/
+.idea/
+
+# Test files
+Basic_DB_Test.php
+Handsontable_CSV_Export_Test.html
+Handsontable_Hyperformula_Test.html
+Handsontable_Loaded_From_View_Test.php
+Handsontable_ScrollToSearchTerm_Test.html
+Handsontable_ScrollToSearchTerm_Test.html
+HelloVourld.php
+
+# Temporary files
+*~
+*.swp

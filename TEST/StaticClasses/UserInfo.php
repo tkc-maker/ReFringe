@@ -7,9 +7,6 @@ if (headers_sent($file, $line)) {
     session_set_cookie_params([
         'lifetime' => 7200,
         'path'     => '/',      // Available across your entire domain.
-//        'domain'   => 'refringe.org',
-//        'domain'   => 'localhost:8888',
-//        'secure'   => true,     // If you're using HTTPS.
         'secure'   => false,
         'httponly' => true,
         'samesite' => 'Lax'     // Or 'Strict', depending on your needs.
@@ -131,8 +128,6 @@ class UserInfo{
     public static function fetchUserInfoFromDbIntoMembersAndSession($username, $password){
         try {
             //Database connection:
-//            $dsn = "pgsql:host=localhost;dbname=wwwolamy_refringedb";
-//            $db = new PDO($dsn, 'wwwolamy_tcarpenter', 'R0e1F1r9I2n5Ge');
             $dsn = Constants::$dsn;
             $db = new PDO($dsn, Constants::$db_username, Constants::$db_password);
             $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
