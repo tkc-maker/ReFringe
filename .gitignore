@@ -11,7 +11,7 @@ dist/
 logs/
 
 # Credentials
-TEST/Static_Classes/Constants.php
+TEST/StaticClasses/Constants.php
 TEST/Utilities/mail_utilities.php
 
 # Uploads
