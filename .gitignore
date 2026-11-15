@@ -1,34 +1,34 @@
 # macOS
-ReFringe/.DS_Store
+.DS_Store
 
 # NetBeans
-ReFringe/nbproject/private/
-ReFringe/build/
-ReFringe/dist/
+nbproject/private/
+build/
+dist/
 
 # Logs
 *.log
-ReFringe/logs/
+logs/
 
 # Credentials
-ReFringe/TEST/Static_Classes/Constants.php
-ReFringe/TEST/Utilities/mail_utilities.php
+TEST/Static_Classes/Constants.php
+TEST/Utilities/mail_utilities.php
 
 # Uploads
-ReFringe/uploads/
+uploads/
 
 # Cache
-ReFringe/cache/
-ReFringe/tmp/
+cache/
+tmp/
 
 # Development Notes
-ReFringe/Tareas Diarias/
+Tareas Diarias/
 
 # Node packages (if used)
-ReFringe/node_modules/
+node_modules/
 
 # Composer dependencies (optional)
-ReFringe/TEST/vendor/
+TEST/vendor/
 
 # Database dumps
 *.sql
@@ -36,17 +36,17 @@ ReFringe/TEST/vendor/
 *.backup
 
 # Editor files
-ReFringe/.vscode/
-ReFringe/.idea/
+.vscode/
+.idea/
 
 # Test files
-ReFringe/Basic_DB_Test.php
-ReFringe/TEST/Handsontable_CSV_Export_Test.html
-ReFringe/TEST/Handsontable_Hyperformula_Test.html
-ReFringe/TEST/Handsontable_Loaded_From_View_Test.php
-ReFringe/TEST/Handsontable_ScrollToSearchTerm_Test.html
-ReFringe/TEST/Handsontable_ScrollToSearchTerm_Test.html
-ReFringe/HelloVourld.php
+Basic_DB_Test.php
+TEST/Handsontable_CSV_Export_Test.html
+TEST/Handsontable_Hyperformula_Test.html
+TEST/Handsontable_Loaded_From_View_Test.php
+TEST/Handsontable_ScrollToSearchTerm_Test.html
+TEST/Handsontable_ScrollToSearchTerm_Test.html
+HelloVourld.php
 
 # Temporary files
 *~
