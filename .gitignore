@@ -56,6 +56,10 @@ TEST/Handsontable_Test.html
 TEST/Landing_Page.html
 HelloVourld.php
 
+# Other files with PII:
+TEST/ProposalDetails/Admin/Help/Proposal_Editor_Admin_Help.html
+TEST/ProposalDetails/Public/Help/Proposal_Editor_Public_Help.html
+
 # Temporary files
 *~
 *.swp
