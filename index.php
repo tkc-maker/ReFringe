@@ -1,12 +1,3 @@
-<!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="UTF-8">
-        <title></title>
-    </head>
-    <body>
-        <?php
-        echo "Hello Vourld!"
-        ?>
-    </body>
-</html>
+<?php
+header("Location: /TEST/Login/Login.php");
+exit;
