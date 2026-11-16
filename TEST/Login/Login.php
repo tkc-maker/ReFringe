@@ -160,7 +160,7 @@
                     'renegotiate', 'renew', 'renovate', 'reopen', 'reorganize', 'repair', 'repeat', 'replace', 'replenish', '(((ReFringe)))', 
                     'reply', 'report', 'represent', 'reprint', 'reprise', 'reproduce', 'repurpose', 'request', 'rescue', '5 x reFringe', 
                     'research', 'resemble', 'reserve', 'reset', 'reshape', 'reside', 'resilient', 'resist', 'resolve', '10 x ReFringe', 
-                    'resonate', 'resort', 'resourcefulness', 'resources', 'respect', 'respite', 'respond', 'restart', 'restore', 'info@reFringe.org', 
+                    'resonate', 'resort', 'resourcefulness', 'resources', 'respect', 'respite', 'respond', 'restart', 'restore',
                     'restructure', 'result', 'resume', 'resurgence', 'resurrect', 'retain', 'retell', 'rethink', 'retrace', '{reFringe}', 
                     'retrieve', 'return', 'reunify', 'reunite', 'revamp', 'reveal', 'revel', 'revere', 'reverse', 'review', '{{{ReFringe}}}', 
                     'revise', 'revisit', 'revitalize', 'revive', 'revolve', 'reward', 'rewrite', 'reFRINGE'];

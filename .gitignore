@@ -27,8 +27,15 @@ Tareas Diarias/
 # Node packages (if used)
 node_modules/
 
+# Handsontable
+TEST/JavaScript/handsontable.full.min.js
+TEST/JavaScript/hyperformula.full.min.js
+
 # Composer dependencies (optional)
 TEST/vendor/
+
+# Forum
+TEST/forum/
 
 # Database dumps
 *.sql
@@ -45,7 +52,8 @@ TEST/Handsontable_CSV_Export_Test.html
 TEST/Handsontable_Hyperformula_Test.html
 TEST/Handsontable_Loaded_From_View_Test.php
 TEST/Handsontable_ScrollToSearchTerm_Test.html
-TEST/Handsontable_ScrollToSearchTerm_Test.html
+TEST/Handsontable_Test.html
+TEST/Landing_Page.html
 HelloVourld.php
 
 # Temporary files
