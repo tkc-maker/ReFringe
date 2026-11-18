@@ -185,14 +185,24 @@ class Screenfield_validation_db{
             //Begin the transaction:
             $db->beginTransaction();
 
+            if(!is_array($arySelectedScreenfieldValidations)){
+                $db->rollBack();
+                return json_encode(["status" => "false", "errMsg" => "Error: Invalid list of Screen Validations."]);
+            }
             foreach ($arySelectedScreenfieldValidations as $item) {
-                $ID = $item[0];
+                $ID = is_array($item) ? ($item[0] ?? null) : null;
                 if(empty($ID)){
                     continue;
                 }
-                $strSqlDelete = "DELETE FROM \"Screenfield_validation\" WHERE \"ID\" = $ID ";
+                //The ID comes from the browser: it must be a whole number,
+                //and is passed as a bound parameter.
+                if(filter_var($ID, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) === false){
+                    $db->rollBack();
+                    return json_encode(["status" => "false", "errMsg" => "Error: Invalid Screen Validation ID."]);
+                }
+                $strSqlDelete = "DELETE FROM \"Screenfield_validation\" WHERE \"ID\" = :ID";
                 $stmt = $db->prepare($strSqlDelete);
-                $stmt->execute();
+                $stmt->execute([':ID' => (int)$ID]);
                 $rowsAffected = $stmt->rowCount();
 
                 if($rowsAffected <= 0){

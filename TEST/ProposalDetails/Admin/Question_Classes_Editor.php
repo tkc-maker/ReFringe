@@ -31,7 +31,7 @@
                 margin-bottom: 15px;
             }
         </style>
-        <script src="/TEST/JavaScript/EditableTable.js?v=1.2"></script>
+        <script src="/TEST/JavaScript/EditableTable.js?v=1.3"></script>
         <title>Reference Table Editor: "Questions_classes"</title>
         
         <script src="/TEST/JavaScript/JQuery371.js"></script>
@@ -259,7 +259,7 @@
 
                             }catch(error){
                                 alert(error);
-                                $('#divPageContent').html(error);
+                                $('#divPageContent').text(error);
                             }
                     }); 
                 }//End function, "displayAllQuestionClassesFromDb".

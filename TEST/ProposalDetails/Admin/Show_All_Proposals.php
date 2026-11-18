@@ -259,12 +259,12 @@
                                     renderResults(aryCurrAllProposals, aryFields);
 
                                 }else{
-                                    $('#divSearchResults').html(results["errMsg"]);
+                                    $('#divSearchResults').text(results["errMsg"]);
                                 }    
 
                             }catch(error){
                                 alert(error);
-                                $('#divSearchResults').html(error);
+                                $('#divSearchResults').text(error);
                             }
                     });
                 }

@@ -47,7 +47,7 @@
                 background-color: orange;
             }
         </style>
-        <script src="/TEST/JavaScript/EditableTable.js?v=1.2"></script>
+        <script src="/TEST/JavaScript/EditableTable.js?v=1.3"></script>
         <title>Proposal Search Loaded from View</title>
         
         <script src="/TEST/JavaScript/JQuery371.js"></script>
@@ -82,12 +82,12 @@
                                 table.loadData(data);
                                 
                             }else{
-                                $('#divPageContent #divSearchResults').html(results["errMsg"]);
+                                $('#divPageContent #divSearchResults').text(results["errMsg"]);
                             }    
 
                         }catch(error){
                             alert(error);
-                            $('#divPageContent #divSearchResults').html(error);
+                            $('#divPageContent #divSearchResults').text(error);
                         }
                     });                
                 });
@@ -116,7 +116,7 @@
                             
                         }catch(error){
                             alert(error);
-                            $('#divPageContent #divSearchResults').html(error);
+                            $('#divPageContent #divSearchResults').text(error);
                         }
                     });
                 });
@@ -273,28 +273,53 @@
                         return checkedRows;
                     }
 
+                    /**   Converts one value into a quoted CSV field that a spreadsheet
+                     * will show as plain text, never run as a formula.
+                     * 
+                     * Steps, in this order:
+                     *   1. Replace "<br>" tags with "," and remove all other HTML tags.
+                     *   2. If the text starts (after any spaces) with a character that
+                     *      makes spreadsheets treat it as a formula ("=", "+", "-", "@",
+                     *      their full-width forms, tab, or a line break), put "'" in
+                     *      front of it, so that it is shown as text.
+                     *      (Done after step 1, so that e.g. "<b>=...</b>" is caught.)
+                     *   3. Double any '"' characters, and wrap the field in '"', so that
+                     *      no value can end its own field and start another.
+                     * 
+                     * @param {*} value
+                     * @returns {string} -- The quoted CSV field.
+                     */
+                    function toCsvField(value) {
+                        var text = String(value);
+                        
+                        //Replace "<br>" tags with ",":
+                        text = text.replace(/<br\s*\/?>/gi, ',');
+    
+                        //Remove all other HTML tags:
+                        text = text.replace(/<\/?[^>]+(>|$)/g, '');
+                        
+                        //Stop spreadsheets from treating the value as a formula:
+                        if(/^\s*[=+\-@\uFF1D\uFF0B\uFF0D\uFF20]/.test(text) || /^[\t\r\n]/.test(text)){
+                            text = "'" + text;
+                        }
+                        
+                        return '"' + text.replace(/"/g, '""') + '"';
+                    }
+
                     /**   Converts the input array of strings into CSV data, using "|"
                      * as the delimiter between values and "\n" as the delimiter
                      * between rows.
                      * 
-                     * Note: This function also removes all HTML tags from the "Roles"
-                     *       and "Questions/Answers" columns, and replaces "<br" with ",".
+                     * Note: Each value is cleaned by "toCsvField" (above): HTML tags are
+                     *       removed ("<br>" becomes ","), and values that a spreadsheet
+                     *       would run as formulas are made into plain text.
                      * 
                      * @param {array} data
                      * @returns {CSV data} -- Where each value is concatenated to the previous
                      *     value by a "|", and rows are concatenated by "\n".
                      */
                     function convertToCSV(data) {
-                        var dataConverted =  data.map(row => row.map(value => `"${value}"`).join('|')).join('\n');
-                        
-                        //Replace "<br>" tags with ",":
-                        dataConverted = dataConverted.replace(/<br\s*\/?>/gi, ',');
-    
-                        //Remove all other HTML tags:
-                        dataConverted = dataConverted.replace(/<\/?[^>]+(>|$)/g, '');
-
-                        return dataConverted;
-
+                        return data.map(row => row.map(toCsvField).join('|')).join('\n');
                     }
 
                     $('#divPageContent').on('click', '#btnClearRowChecks', function() {

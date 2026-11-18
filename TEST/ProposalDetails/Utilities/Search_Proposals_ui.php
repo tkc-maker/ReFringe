@@ -1,47 +1,58 @@
 <?php
 
 class Search_Proposals_ui{
+
+    /**   Escapes a saved search value for display inside an HTML attribute or
+     * <textarea>, so that characters such as " < > & ' show as typed and
+     * cannot change the page. Anything that is not a plain value shows as ''.
+     *
+     * @param mixed $value
+     * @return string
+     */
+    private static function escapeForHtml($value){
+        return is_scalar($value) ? htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8') : '';
+    }
     
     public static function proposalSearchDisplay(){
        $chkInclude_1 = (isset($_SESSION['SP_Include_1']) ? $_SESSION['SP_Include_1'] : true);
-       $Role_1 = (isset($_SESSION['SP_Role_1']) ?  $_SESSION['SP_Role_1'] : '');
-       $First_Name_1 = (isset($_SESSION['SP_First_Name_1']) ? $_SESSION['SP_First_Name_1'] : '');
-       $Last_Name_1 = (isset($_SESSION['SP_Last_Name_1']) ? $_SESSION['SP_Last_Name_1'] : '');
-       $Phone_1 = (isset($_SESSION['SP_Phone_1']) ? $_SESSION['SP_Phone_1'] : '');
-       $Email_1 = (isset($_SESSION['SP_Email_1']) ? $_SESSION['SP_Email_1'] : '');
-       $Title_1 = (isset($_SESSION['SP_Title_1']) ?  $_SESSION['SP_Title_1'] : '');
-       $Question_classes_1 = (isset($_SESSION['SP_Question-classes_1']) ? $_SESSION['SP_Question-classes_1'] : '');
-       $questions_answers_1 = (isset($_SESSION['SP_Questions-and-Answers_1']) ? $_SESSION['SP_Questions-and-Answers_1'] : '');
+       $Role_1 = self::escapeForHtml(isset($_SESSION['SP_Role_1']) ?  $_SESSION['SP_Role_1'] : '');
+       $First_Name_1 = self::escapeForHtml(isset($_SESSION['SP_First_Name_1']) ? $_SESSION['SP_First_Name_1'] : '');
+       $Last_Name_1 = self::escapeForHtml(isset($_SESSION['SP_Last_Name_1']) ? $_SESSION['SP_Last_Name_1'] : '');
+       $Phone_1 = self::escapeForHtml(isset($_SESSION['SP_Phone_1']) ? $_SESSION['SP_Phone_1'] : '');
+       $Email_1 = self::escapeForHtml(isset($_SESSION['SP_Email_1']) ? $_SESSION['SP_Email_1'] : '');
+       $Title_1 = self::escapeForHtml(isset($_SESSION['SP_Title_1']) ?  $_SESSION['SP_Title_1'] : '');
+       $Question_classes_1 = self::escapeForHtml(isset($_SESSION['SP_Question-classes_1']) ? $_SESSION['SP_Question-classes_1'] : '');
+       $questions_answers_1 = self::escapeForHtml(isset($_SESSION['SP_Questions-and-Answers_1']) ? $_SESSION['SP_Questions-and-Answers_1'] : '');
 
        $chkInclude_2 = (isset($_SESSION['SP_Include_2']) ? $_SESSION['SP_Include_2'] : false);
-       $Role_2 = (isset($_SESSION['SP_Role_2']) ?  $_SESSION['SP_Role_2'] : '');
-       $First_Name_2 = (isset($_SESSION['SP_First_Name_2']) ? $_SESSION['SP_First_Name_2'] : '');
-       $Last_Name_2 = (isset($_SESSION['SP_Last_Name_2']) ? $_SESSION['SP_Last_Name_2'] : '');
-       $Phone_2 = (isset($_SESSION['SP_Phone_2']) ? $_SESSION['SP_Phone_2'] : '');
-       $Email_2 = (isset($_SESSION['SP_Email_2']) ? $_SESSION['SP_Email_2'] : '');
-       $Title_2 = (isset($_SESSION['SP_Title_2']) ?  $_SESSION['SP_Title_2'] : '');
-       $Question_classes_2 = (isset($_SESSION['SP_Question-classes_2']) ? $_SESSION['SP_Question-classes_2'] : '');
-       $questions_answers_2 = (isset($_SESSION['SP_Questions-and-Answers_2']) ? $_SESSION['SP_Questions-and-Answers_2'] : '');
+       $Role_2 = self::escapeForHtml(isset($_SESSION['SP_Role_2']) ?  $_SESSION['SP_Role_2'] : '');
+       $First_Name_2 = self::escapeForHtml(isset($_SESSION['SP_First_Name_2']) ? $_SESSION['SP_First_Name_2'] : '');
+       $Last_Name_2 = self::escapeForHtml(isset($_SESSION['SP_Last_Name_2']) ? $_SESSION['SP_Last_Name_2'] : '');
+       $Phone_2 = self::escapeForHtml(isset($_SESSION['SP_Phone_2']) ? $_SESSION['SP_Phone_2'] : '');
+       $Email_2 = self::escapeForHtml(isset($_SESSION['SP_Email_2']) ? $_SESSION['SP_Email_2'] : '');
+       $Title_2 = self::escapeForHtml(isset($_SESSION['SP_Title_2']) ?  $_SESSION['SP_Title_2'] : '');
+       $Question_classes_2 = self::escapeForHtml(isset($_SESSION['SP_Question-classes_2']) ? $_SESSION['SP_Question-classes_2'] : '');
+       $questions_answers_2 = self::escapeForHtml(isset($_SESSION['SP_Questions-and-Answers_2']) ? $_SESSION['SP_Questions-and-Answers_2'] : '');
 
        $chkInclude_3 = (isset($_SESSION['SP_Include_3']) ? $_SESSION['SP_Include_3'] : false);
-       $Role_3 = (isset($_SESSION['SP_Role_3']) ?  $_SESSION['SP_Role_3'] : '');
-       $First_Name_3 = (isset($_SESSION['SP_First_Name_3']) ? $_SESSION['SP_First_Name_3'] : '');
-       $Last_Name_3 = (isset($_SESSION['SP_Last_Name_3']) ? $_SESSION['SP_Last_Name_3'] : '');
-       $Phone_3 = (isset($_SESSION['SP_Phone_3']) ? $_SESSION['SP_Phone_3'] : '');
-       $Email_3 = (isset($_SESSION['SP_Email_3']) ? $_SESSION['SP_Email_3'] : '');
-       $Title_3 = (isset($_SESSION['SP_Title_3']) ?  $_SESSION['SP_Title_3'] : '');
-       $Question_classes_3 = (isset($_SESSION['SP_Question-classes_3']) ? $_SESSION['SP_Question-classes_3'] : '');
-       $questions_answers_3 = (isset($_SESSION['SP_Questions-and-Answers_3']) ? $_SESSION['SP_Questions-and-Answers_3'] : '');
+       $Role_3 = self::escapeForHtml(isset($_SESSION['SP_Role_3']) ?  $_SESSION['SP_Role_3'] : '');
+       $First_Name_3 = self::escapeForHtml(isset($_SESSION['SP_First_Name_3']) ? $_SESSION['SP_First_Name_3'] : '');
+       $Last_Name_3 = self::escapeForHtml(isset($_SESSION['SP_Last_Name_3']) ? $_SESSION['SP_Last_Name_3'] : '');
+       $Phone_3 = self::escapeForHtml(isset($_SESSION['SP_Phone_3']) ? $_SESSION['SP_Phone_3'] : '');
+       $Email_3 = self::escapeForHtml(isset($_SESSION['SP_Email_3']) ? $_SESSION['SP_Email_3'] : '');
+       $Title_3 = self::escapeForHtml(isset($_SESSION['SP_Title_3']) ?  $_SESSION['SP_Title_3'] : '');
+       $Question_classes_3 = self::escapeForHtml(isset($_SESSION['SP_Question-classes_3']) ? $_SESSION['SP_Question-classes_3'] : '');
+       $questions_answers_3 = self::escapeForHtml(isset($_SESSION['SP_Questions-and-Answers_3']) ? $_SESSION['SP_Questions-and-Answers_3'] : '');
 
        $chkInclude_4 = (isset($_SESSION['SP_Include_4']) ? $_SESSION['SP_Include_4'] : false);
-       $Role_4 = (isset($_SESSION['SP_Role_4']) ?  $_SESSION['SP_Role_4'] : '');
-       $First_Name_4 = (isset($_SESSION['SP_First_Name_4']) ? $_SESSION['SP_First_Name_4'] : '');
-       $Last_Name_4 = (isset($_SESSION['SP_Last_Name_4']) ? $_SESSION['SP_Last_Name_4'] : '');
-       $Phone_4 = (isset($_SESSION['SP_Phone_4']) ? $_SESSION['SP_Phone_4'] : '');
-       $Email_4 = (isset($_SESSION['SP_Email_4']) ? $_SESSION['SP_Email_4'] : '');
-       $Title_4 = (isset($_SESSION['SP_Title_4']) ?  $_SESSION['SP_Title_4'] : '');
-       $Question_classes_4 = (isset($_SESSION['SP_Question-classes_4']) ? $_SESSION['SP_Question-classes_4'] : '');
-       $questions_answers_4 = (isset($_SESSION['SP_Questions-and-Answers_4']) ? $_SESSION['SP_Questions-and-Answers_4'] : '');
+       $Role_4 = self::escapeForHtml(isset($_SESSION['SP_Role_4']) ?  $_SESSION['SP_Role_4'] : '');
+       $First_Name_4 = self::escapeForHtml(isset($_SESSION['SP_First_Name_4']) ? $_SESSION['SP_First_Name_4'] : '');
+       $Last_Name_4 = self::escapeForHtml(isset($_SESSION['SP_Last_Name_4']) ? $_SESSION['SP_Last_Name_4'] : '');
+       $Phone_4 = self::escapeForHtml(isset($_SESSION['SP_Phone_4']) ? $_SESSION['SP_Phone_4'] : '');
+       $Email_4 = self::escapeForHtml(isset($_SESSION['SP_Email_4']) ? $_SESSION['SP_Email_4'] : '');
+       $Title_4 = self::escapeForHtml(isset($_SESSION['SP_Title_4']) ?  $_SESSION['SP_Title_4'] : '');
+       $Question_classes_4 = self::escapeForHtml(isset($_SESSION['SP_Question-classes_4']) ? $_SESSION['SP_Question-classes_4'] : '');
+       $questions_answers_4 = self::escapeForHtml(isset($_SESSION['SP_Questions-and-Answers_4']) ? $_SESSION['SP_Questions-and-Answers_4'] : '');
        
        $RefineSearch = (isset($_SESSION['SP_RefineSearch']) ? $_SESSION['SP_RefineSearch'] : '');
         

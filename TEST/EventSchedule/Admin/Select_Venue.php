@@ -38,7 +38,7 @@
                 background-color: orange;
             }
         </style>
-        <script src="/TEST/JavaScript/EditableTable.js?v=1.2"></script>
+        <script src="/TEST/JavaScript/EditableTable.js?v=1.3"></script>
         <title>Select a Checked Venue</title>
         
         <script src="/TEST/JavaScript/JQuery371.js"></script>

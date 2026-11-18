@@ -100,6 +100,26 @@
  *
  * Copy (Ctrl+C) copies the selected cell's value; paste (Ctrl+V) replaces it.
  *
+ * Security (what this file does, and what it cannot do):
+ *   - Nothing in the data is ever run as code: text cells and headers are
+ *     shown with textContent, 'html' cells go through setSafeHtml() (see above).
+ *   - Text typed or pasted into a cell is cleaned (see cleanUserText()): NUL
+ *     and other invisible control characters are removed (tab and line
+ *     breaks are kept), and broken UTF-16 is repaired. Otherwise it is kept
+ *     exactly as typed, quotes and all.
+ *   - Row indexes and column indexes must be whole numbers (anything else is
+ *     treated as out of range), and the property names "__proto__",
+ *     "constructor" and "prototype" are never read or written, so data and
+ *     settings (for example, rows parsed from JSON) cannot tamper with the
+ *     table's objects.
+ *   - Read-only cells cannot be changed through the grid's own user interface.
+ *   - THIS DOES NOT PROTECT THE DATABASE. Everything here runs in the user's
+ *     browser, where it can be changed or skipped (e.g. with the browser's
+ *     developer tools, or by posting to the server directly). The server must
+ *     treat every value it receives as untrusted: use PDO prepared statements
+ *     with bound parameters (never build SQL by joining strings), check that
+ *     IDs are integers, and check that the user may change that record.
+ *
  * Styling lives in /TEST/CSS/EditableTable.css. Add the class "et-theme-dark" to
  * the container for the dark look.
  */
@@ -156,14 +176,83 @@
         return value === null || value === undefined || value === '';
     }
 
+    //Property names that could reach (or replace) an object's prototype. They
+    //are never used as row properties, column "data" names or setting names.
+    var UNSAFE_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
+
+    /** @returns {boolean} -- Whether "key" is a harmless property name. */
+    function isSafeKey(key) {
+        return (typeof key === 'string' || typeof key === 'number') && !UNSAFE_KEYS.has(String(key));
+    }
+
+    /** @returns {boolean} -- Whether "value" is a whole number >= 0. */
+    function isIndex(value) {
+        return Number.isInteger(value) && value >= 0;
+    }
+
+    /**   Copies the object's own enumerable properties into "target", except
+     * the unsafe ones. (Unlike Object.assign(), a "__proto__" property that
+     * came from JSON.parse() cannot replace the target's prototype.)
+     *
+     * @returns {Object} -- "target".
+     */
+    function assignSafe(target, source) {
+        if (source !== null && typeof source === 'object') {
+            Object.keys(source).forEach(function (key) {
+                if (isSafeKey(key)) {
+                    target[key] = source[key];
+                }
+            });
+        }
+        return target;
+    }
+
     /**   Copies a row: arrays element by element, objects property by
-     * property (a "shallow" copy). Anything else becomes an empty row.
+     * property (a "shallow" copy, without any unsafe property names).
+     * Anything else becomes an empty row.
      */
     function copyRow(row) {
         if (Array.isArray(row)) {
             return row.slice();
         }
-        return (row !== null && typeof row === 'object') ? Object.assign({}, row) : [];
+        return (row !== null && typeof row === 'object') ? assignSafe({}, row) : [];
+    }
+
+    //C0 control characters other than tab (\x09), line feed (\x0A) and
+    //carriage return (\x0D), plus DEL. These are invisible, can hide what a
+    //value really contains, and NUL is rejected by PostgreSQL text columns.
+    var CONTROL_CHARACTERS = /[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g;
+
+    /**   Cleans text that the user typed or pasted into a cell: removes the
+     * control characters above, and replaces broken UTF-16 (which cannot be
+     * sent to the server as valid UTF-8) with U+FFFD. Everything else, such
+     * as quotes, "<" and ";", is kept: making it safe is the job of whatever
+     * later shows it (this file, for display) or stores it (the server, with
+     * bound parameters).
+     *
+     * @param {string} text
+     * @returns {string}
+     */
+    function cleanUserText(text) {
+        var cleaned = String(text).replace(CONTROL_CHARACTERS, '');
+        if (typeof cleaned.toWellFormed === 'function') {
+            return cleaned.toWellFormed();
+        }
+        //For older browsers: the same as toWellFormed().
+        var result = '';
+        for (var i = 0; i < cleaned.length; i++) {
+            var code = cleaned.charCodeAt(i);
+            if (code >= 0xD800 && code <= 0xDBFF && i + 1 < cleaned.length) {
+                var next = cleaned.charCodeAt(i + 1);
+                if (next >= 0xDC00 && next <= 0xDFFF) {
+                    result += cleaned.charAt(i) + cleaned.charAt(i + 1);    //A valid pair.
+                    i++;
+                    continue;
+                }
+            }
+            result += (code >= 0xD800 && code <= 0xDFFF) ? '\uFFFD' : cleaned.charAt(i);
+        }
+        return result;
     }
 
     class EditableTable {
@@ -182,15 +271,15 @@
             this._sort = null;      //{ col: <number>, direction: 'asc' | 'desc' } or null.
             this._selected = null;  //{ row: <visual row>, col: <column> } or null.
             this._editor = null;    //State of the open text editor, or null.
-            this._hooks = {};       //Hook name -> array of functions added with addHook().
+            this._hooks = new Map(); //Hook name -> array of functions added with addHook().
             this._sourceKeys = null; //Property names, for object rows without "columns".
 
             this._buildShell();
 
-            settings = Object.assign({}, settings || {});
+            settings = assignSafe({}, settings);
             var initialData = ('data' in settings) ? settings.data : [];
             delete settings.data;
-            Object.assign(this.settings, settings);
+            assignSafe(this.settings, settings);
             this.loadData(initialData);    //Also renders.
         }
 
@@ -226,7 +315,7 @@
          */
         getDataAtCell(row, col) {
             var physicalRow = this._toPhysicalRow(row);
-            if (physicalRow === null || col < 0 || col >= this.countCols()) {
+            if (physicalRow === null || !this._isColumn(col)) {
                 return null;
             }
             return this._valueAt(physicalRow, col);
@@ -277,7 +366,7 @@
                 return;
             }
             var physicalRow = this._toPhysicalRow(row);
-            if (physicalRow === null || col < 0 || col >= this.countCols()) {
+            if (physicalRow === null || !this._isColumn(col)) {
                 return;
             }
             this._setValueAt(physicalRow, col, value);
@@ -302,8 +391,8 @@
                 return;
             }
             var physicalRow = this._toPhysicalRow(row);
-            if (physicalRow === null) {
-                return;
+            if (physicalRow === null || !isSafeKey(prop) || prop === '') {
+                return;    //Unsafe names such as "__proto__" are ignored.
             }
             this._data[physicalRow][prop] = value;
             for (var col = 0; col < this.countCols(); col++) {
@@ -320,14 +409,18 @@
          * file): 'afterOnCellMouseDown' or 'afterOnCellMouseUp'.
          */
         addHook(name, fn) {
-            if (typeof fn === 'function') {
-                (this._hooks[name] = this._hooks[name] || []).push(fn);
+            if (typeof fn !== 'function') {
+                return;
             }
+            if (!this._hooks.has(name)) {
+                this._hooks.set(name, []);
+            }
+            this._hooks.get(name).push(fn);
         }
 
         /**   Removes a function added with addHook(). */
         removeHook(name, fn) {
-            var list = this._hooks[name] || [];
+            var list = this._hooks.get(name) || [];
             var index = list.indexOf(fn);
             if (index !== -1) {
                 list.splice(index, 1);
@@ -363,11 +456,11 @@
          * @param {Object} settings
          */
         updateSettings(settings) {
-            settings = Object.assign({}, settings || {});
+            settings = assignSafe({}, settings);
             var hasData = ('data' in settings);
             var newData = settings.data;
             delete settings.data;
-            Object.assign(this.settings, settings);
+            assignSafe(this.settings, settings);
             if (hasData) {
                 this.loadData(newData);
             } else {
@@ -637,7 +730,7 @@
             var meta = this._metaAt(row, col);
 
             td.className = 'et-cell';
-            if (meta.className) {
+            if (typeof meta.className === 'string' && meta.className !== '') {
                 td.className += ' ' + meta.className;
             }
             if (meta.readOnly) {
@@ -678,7 +771,8 @@
 
         _columnSetting(col, name) {
             var columns = this.settings.columns;
-            if (Array.isArray(columns) && columns[col] && (name in columns[col])) {
+            if (Array.isArray(columns) && isIndex(col) && columns[col] &&
+                    Object.prototype.hasOwnProperty.call(columns[col], name)) {
                 return columns[col][name];
             }
             return undefined;
@@ -693,9 +787,9 @@
          */
         _cellMeta(physicalRow, col) {
             var columns = this.settings.columns;
-            var meta = Object.assign({}, (Array.isArray(columns) && columns[col]) || {});
+            var meta = assignSafe({}, (Array.isArray(columns) && columns[col]) || {});
             if (typeof this.settings.cells === 'function') {
-                Object.assign(meta, this.settings.cells.call(this, physicalRow, col, this._keyFor(col)) || {});
+                assignSafe(meta, this.settings.cells.call(this, physicalRow, col, this._keyFor(col)));
             }
             meta.type = (meta.type === 'checkbox' || meta.type === 'html') ? meta.type : 'text';
             meta.readOnly = (meta.readOnly !== undefined) ? Boolean(meta.readOnly) : Boolean(this.settings.readOnly);
@@ -714,7 +808,7 @@
         _keyFor(col) {
             var data = this._columnSetting(col, 'data');
             if ((typeof data === 'string' && data !== '') || typeof data === 'number') {
-                return data;
+                return isSafeKey(data) ? data : null;    //null: the column stays empty.
             }
             if (this._sourceKeys && !Array.isArray(this.settings.columns) && col < this._sourceKeys.length) {
                 return this._sourceKeys[col];
@@ -722,13 +816,24 @@
             return col;
         }
 
+        /**   Reads a cell. Only the row's own properties are read, never
+         * inherited ones (such as "toString").
+         */
         _valueAt(physicalRow, col) {
-            var value = this._data[physicalRow][this._keyFor(col)];
+            var row = this._data[physicalRow];
+            var key = this._keyFor(col);
+            if (key === null || !Object.prototype.hasOwnProperty.call(row, key)) {
+                return null;
+            }
+            var value = row[key];
             return (value === undefined) ? null : value;
         }
 
         _setValueAt(physicalRow, col, value) {
-            this._data[physicalRow][this._keyFor(col)] = value;
+            var key = this._keyFor(col);
+            if (key !== null) {
+                this._data[physicalRow][key] = value;
+            }
         }
 
         /**   One row's values as an array in column order. Array rows are
@@ -781,10 +886,15 @@
         }
 
         _toPhysicalRow(row) {
-            if (typeof row !== 'number' || row < 0 || row >= this._order.length) {
+            if (!isIndex(row) || row >= this._order.length) {
                 return null;
             }
             return this._order[row];
+        }
+
+        /** @returns {boolean} -- Whether "col" is a valid column index. */
+        _isColumn(col) {
+            return isIndex(col) && col < this.countCols();
         }
 
         /** Copies a row, padded with nulls to the full column count. */
@@ -799,7 +909,8 @@
         }
 
         _findCell(row, col) {
-            if (!this._table) {
+            //Both must be whole numbers, so nothing else can reach the selector.
+            if (!this._table || !isIndex(row) || !isIndex(col)) {
                 return null;
             }
             return this._table.querySelector('td[data-row="' + row + '"][data-col="' + col + '"]');
@@ -1059,7 +1170,7 @@
             }
             this._editor = null;    //Set first: focus changes below fire "blur" again.
 
-            var newText = editor.textarea.value;
+            var newText = cleanUserText(editor.textarea.value);
             if (refocusGrid && this._wrapper) {
                 this._wrapper.focus({ preventScroll: true });
             }
@@ -1151,7 +1262,7 @@
          */
         _runHook(name, event, cell) {
             var coords = { row: cell.row, col: cell.col };
-            var fns = [this.settings[name]].concat(this._hooks[name] || []);
+            var fns = [this.settings[name]].concat(this._hooks.get(name) || []);
             for (var i = 0; i < fns.length; i++) {
                 if (typeof fns[i] === 'function') {
                     fns[i].call(this, event, coords, cell.td);
@@ -1178,9 +1289,17 @@
                 return;
             }
             var cell = this._cellFromEvent(event);
-            if (cell) {
-                this.setDataAtCell(cell.row, cell.col, event.target.checked);
+            if (!cell) {
+                return;
             }
+            var meta = this._metaAt(cell.row, cell.col);
+            if (meta.readOnly || meta.type !== 'checkbox') {
+                //E.g. a disabled checkbox was re-enabled with developer tools:
+                //put the stored value back.
+                this._fillCell(cell.td, cell.row, cell.col);
+                return;
+            }
+            this.setDataAtCell(cell.row, cell.col, event.target.checked);
         }
 
         _onCopy(event) {
@@ -1203,7 +1322,7 @@
             if (meta.readOnly) {
                 return;
             }
-            var text = event.clipboardData.getData('text/plain').replace(/\r?\n$/, '');
+            var text = cleanUserText(event.clipboardData.getData('text/plain').replace(/\r?\n$/, ''));
             if (meta.type === 'checkbox') {
                 var lowered = text.trim().toLowerCase();
                 if (lowered === 'true' || lowered === 'false') {
@@ -1322,10 +1441,45 @@
     var DROPPED_TAGS = new Set(['SCRIPT', 'STYLE', 'TEMPLATE', 'IFRAME', 'OBJECT', 'EMBED',
         'NOSCRIPT', 'SVG', 'MATH', 'TEXTAREA', 'SELECT', 'BUTTON', 'HEAD', 'TITLE']);
 
+    //Formatting tags nested deeper than this are flattened to plain text, so
+    //that hostile, very deeply nested HTML cannot exhaust the call stack.
+    var MAX_HTML_DEPTH = 64;
+
+    /**   Appends the text inside "sourceParent" to "targetParent" as a single
+     * text node, skipping the contents of DROPPED_TAGS. Not recursive.
+     */
+    function copyTextOnly(sourceParent, targetParent) {
+        var walker = sourceParent.ownerDocument.createTreeWalker(sourceParent,
+            NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT, {
+                acceptNode: function (node) {
+                    if (node.nodeType === Node.ELEMENT_NODE) {
+                        return DROPPED_TAGS.has(node.tagName.toUpperCase()) ?
+                            NodeFilter.FILTER_REJECT : NodeFilter.FILTER_SKIP;
+                    }
+                    return NodeFilter.FILTER_ACCEPT;
+                }
+            });
+        var text = '';
+        while (walker.nextNode()) {
+            text += walker.currentNode.nodeValue;
+        }
+        if (text !== '') {
+            targetParent.appendChild(document.createTextNode(text));
+        }
+    }
+
     /**   Copies the safe parts of a parsed node tree into a new fragment. Other
      * tags are "unwrapped": their text is kept, but the tag itself is not.
+     * Only new, attribute-free elements and text nodes are created; nothing
+     * from the parsed document is moved, and nothing is re-parsed as HTML.
+     *
+     * @param {number} depth -- How many tags deep "targetParent" is.
      */
-    function copySafeNodes(sourceParent, targetParent) {
+    function copySafeNodes(sourceParent, targetParent, depth) {
+        if (depth >= MAX_HTML_DEPTH) {
+            copyTextOnly(sourceParent, targetParent);
+            return;
+        }
         sourceParent.childNodes.forEach(function (node) {
             if (node.nodeType === Node.TEXT_NODE) {
                 targetParent.appendChild(document.createTextNode(node.nodeValue));
@@ -1336,10 +1490,10 @@
                 }
                 if (SAFE_TAGS.has(tag)) {
                     var copy = document.createElement(tag.toLowerCase());    //No attributes.
-                    copySafeNodes(node, copy);
+                    copySafeNodes(node, copy, depth + 1);
                     targetParent.appendChild(copy);
                 } else {
-                    copySafeNodes(node, targetParent);
+                    copySafeNodes(node, targetParent, depth + 1);
                 }
             }
             //Comments and other node types are dropped.
@@ -1355,10 +1509,13 @@
      * @param {*} html -- The HTML string (null/undefined show as empty).
      */
     EditableTable.setSafeHtml = function (element, html) {
+        if (!(element instanceof HTMLElement)) {
+            throw new TypeError('EditableTable.setSafeHtml: "element" must be a DOM element.');
+        }
         var fragment = document.createDocumentFragment();
         if (!isEmptyValue(html)) {
             var parsed = new DOMParser().parseFromString(String(html), 'text/html');
-            copySafeNodes(parsed.body, fragment);
+            copySafeNodes(parsed.body, fragment, 0);
         }
         element.replaceChildren(fragment);
     };

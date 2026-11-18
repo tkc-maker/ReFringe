@@ -4,11 +4,21 @@ class Search_Proposals_db{
     /**   Dynamically builds an SQL-SELECT statement from the search criteria passed in.
      * If nothing is passed in, then '' is returned.
      * 
+     * Note: The search values are never put into the SQL text. Each one is
+     *       represented by a placeholder (":p0", ":p1", ...), and its value is
+     *       returned in $params, to be bound when the statement is executed.
+     *       Column names are taken only from a fixed list (see $searchableFields).
+     * 
      * @param JSON $jsonSearchProposals -- Contains search criteria from the Proposals "Search screen".
+     * @param array $params -- (Output.) Set to the placeholder => value pairs for the statement.
      * @return string -- An SQL-SELECT statement.
      */
-    public static function buildSearchSQL($jsonSearchProposals){
+    public static function buildSearchSQL($jsonSearchProposals, &$params = null){
+        $params = [];
         $arySearchProposals = json_decode($jsonSearchProposals, true);
+        if(!is_array($arySearchProposals)){
+            return '';
+        }
 
         $_SESSION['SP_Include_1'] = $arySearchProposals['Include_1'];
         $_SESSION['SP_Role_1'] = $arySearchProposals['Role_1'];
@@ -50,33 +60,54 @@ class Search_Proposals_db{
         $_SESSION['SP_Question-classes_4'] = $arySearchProposals['Question-classes_4'];
         $_SESSION['SP_Questions-and-Answers_4'] = $arySearchProposals['Questions-and-Answers_4'];
 
+        //The only columns that may be searched, each with the SQL used for it.
+        //Keys sent by the browser are only looked up in this list; they are
+        //never put into the SQL themselves.
+        $searchableFields = [
+            'Role' => '"Role"',
+            'First-Name' => '"First-Name"',
+            'Last-Name' => '"Last-Name"',
+            'Phone' => '"Phone"',
+            'Email' => '"Email"',
+            'Title' => '"Title"',
+            'Question-classes' => '"Question-classes"::text',
+            'Questions-and-Answers' => '"Questions-and-Answers"::text'
+        ];
+
         $aryCriteria_1 = [];
         $aryCriteria_2 = [];
         $aryCriteria_3 = [];
         $aryCriteria_4 = [];
         foreach ($arySearchProposals as $key => $value) {
+            $key = (string)$key;
             if(empty($value) || str_contains($key, 'Include')){
                 continue;
             }
-            $segment = '';
-            $fieldname = substr($key, 0, -2);
-            if(str_contains($key, 'Question-classes') ||
-               str_contains($key, 'Questions-and-Answers')){
-                $segment = "\"$fieldname\"::text ILIKE '%$value%'";
-            }else{
-                $segment = "\"$fieldname\" ILIKE '%$value%'";
+            //E.g. "First-Name_2" is field "First-Name" in criteria row 2:
+            if(preg_match('/^(.+)_([1-4])$/', $key, $matches) !== 1 ||
+               !isset($searchableFields[$matches[1]]) || !is_scalar($value)){
+                continue; //Unknown field, or not a plain value: ignored.
+            }
+            $fieldname = $matches[1];
+            $criteriaRow = $matches[2];
+            if(empty($arySearchProposals['Include_'.$criteriaRow])){
+                continue; //That criteria row is not included in the search.
             }
 
-            if(str_ends_with($key, '_1')){
+            $placeholder = ':p'.count($params);
+            $params[$placeholder] = '%'.$value.'%';
+            $segment = $searchableFields[$fieldname]." ILIKE $placeholder";
+
+            if($criteriaRow === '1'){
                 $aryCriteria_1[] = $segment;
 
-            }elseif(str_ends_with($key, '_2')){
+            }elseif($criteriaRow === '2'){
                 $aryCriteria_2[] = $segment;
 
-            }elseif(str_ends_with($key, '_3')){
+            }elseif($criteriaRow === '3'){
                 $aryCriteria_3[] = $segment;
 
-            }elseif(str_ends_with($key, '_4')){
+            }elseif($criteriaRow === '4'){
                 $aryCriteria_4[] = $segment;
             }
         }
@@ -119,6 +150,7 @@ class Search_Proposals_db{
         }
 
         if(empty($strWHERE_1) && empty($strWHERE_2) && empty($strWHERE_3) && empty($strWHERE_4)){
+            $params = [];
             return '';
         }
 
@@ -165,16 +197,19 @@ class Search_Proposals_db{
      *
      * @param PDO $db -- A database connection. 
      * @param string $sqlSelect -- An SQL-SELECT ORDER BY string against the "proposal_questions_view_2".
+     * @param bool $assoc_cols -- Whether to return rows keyed by column name.
+     * @param array $params -- Values for the statement's placeholders (see "buildSearchSQL").
      * @return bool/Assoc Array -- Either an array of arrays (for rows and columns) or false.
      */
-    public static function getProposalDetailsQuestionsFromDb($db, $sqlSelect, $assoc_cols=false){
+    public static function getProposalDetailsQuestionsFromDb($db, $sqlSelect, $assoc_cols=false, $params=[]){
         try {
             if(empty($sqlSelect)){
                 return json_encode(["status" => "false", "errMsg" => "Error: No SQL statement provided."]);
             }
             
-            //Execute the statement:
-            $stmt = $db->query($sqlSelect);
+            //Execute the statement, with any search values bound as parameters:
+            $stmt = $db->prepare($sqlSelect);
+            $stmt->execute(is_array($params) ? $params : []);
 
             //Fetch the result:
             if($assoc_cols){

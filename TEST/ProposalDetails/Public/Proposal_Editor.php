@@ -106,7 +106,7 @@
               clip: rect(0 0 0 0);
             }            
         </style>
-        <script src="/TEST/JavaScript/EditableTable.js?v=1.2"></script>
+        <script src="/TEST/JavaScript/EditableTable.js?v=1.3"></script>
         <title>Proposal Details Editor"</title>
         
         <script src="/TEST/JavaScript/JQuery371.js"></script>
@@ -212,7 +212,7 @@
 
                             }catch(error){
                                 alert(error);
-                                $('#divPageContent').html(error);
+                                $('#divPageContent').text(error);
                             }
                     });                     
                 }//End function, "displayAllQuestionClassesFromDb".
@@ -321,10 +321,20 @@
                 }
                 
                 /**   Utility to convert HTML entities into readable text.
-                 * @param {type} text
-                 * @returns {jQuery}                 */
+                 * 
+                 * Note: The text is parsed with DOMParser, into a separate document
+                 *       that never runs scripts or loads images. (The previous
+                 *       "$('<div>').html(text)" would run e.g. "<img src=x onerror=...>",
+                 *       even though the <div> is never shown.) As before, any tags
+                 *       are dropped and only their text is kept.
+                 * @param {string} text
+                 * @returns {string}
+                 */
                 function unescapeHtml(text) {
-                  return $('<div>').html(text).text();
+                  if(text === null || text === undefined){
+                      return '';
+                  }
+                  return new DOMParser().parseFromString(String(text), 'text/html').documentElement.textContent;
                 } 
                 
                 //Change "#btnShowQandA" button to red when the title field is changed:

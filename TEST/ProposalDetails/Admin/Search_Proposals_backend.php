@@ -18,8 +18,8 @@ switch($mode){
     case 'searchProposalsSubmit':
         $jsonSearchProposals = trim(filter_input(INPUT_POST, 'jsonSearchProposals', FILTER_UNSAFE_RAW));
         $db = openDatabaseConnection();
-        $sqlSelect = Search_Proposals_db::buildSearchSQL($jsonSearchProposals);
-        echo Search_Proposals_db::getProposalDetailsQuestionsFromDb($db, $sqlSelect);
+        $sqlSelect = Search_Proposals_db::buildSearchSQL($jsonSearchProposals, $params);
+        echo Search_Proposals_db::getProposalDetailsQuestionsFromDb($db, $sqlSelect, false, $params);
         closeDatabaseConnection($db);
         break;
 

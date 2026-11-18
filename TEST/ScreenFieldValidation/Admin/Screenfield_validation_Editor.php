@@ -61,7 +61,7 @@
                 width: 100%;
             }
         </style>
-        <script src="/TEST/JavaScript/EditableTable.js?v=1.2"></script>
+        <script src="/TEST/JavaScript/EditableTable.js?v=1.3"></script>
         <title>Reference Table Editor: "Screenfield_validation"</title>
         
         <script src="/TEST/JavaScript/JQuery371.js"></script>
@@ -280,7 +280,7 @@
 
                             }catch(error){
                                 alert(error);
-                                $('#divPageContent').html(error);
+                                $('#divPageContent').text(error);
                             }
                     }); 
                 }//End function, "displayAllScreenfieldValidationsFromDb".

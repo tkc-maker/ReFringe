@@ -48,15 +48,30 @@ class genres_db{
             //Begin the transaction:
             $db->beginTransaction();
 
+            if(!is_array($arySelectedGenres)){
+                $db->rollBack();
+                return false;
+            }
             foreach($arySelectedGenres as $item){
-                $ID = $item[0];
-                $name = $item[1];
+                $ID = is_array($item) ? ($item[0] ?? null) : null;
+                $name = is_array($item) ? ($item[1] ?? null) : null;
                 if(empty($ID) || empty($name)){
                     continue;
                 }
-                $strSqlUpdate = "UPDATE \"Genres\" SET \"name\" = '$name' WHERE \"ID\" = $ID";
+                //The values come from the browser, so they are never trusted:
+                //the ID must be a whole number, and both values are passed as
+                //bound parameters, never joined into the SQL text.
+                if(filter_var($ID, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) === false ||
+                   !is_scalar($name)){
+                    $db->rollBack();
+                    return false;
+                }
+                $strSqlUpdate = "UPDATE \"Genres\" SET \"name\" = :name WHERE \"ID\" = :ID";
                 $stmt = $db->prepare($strSqlUpdate);
-                $stmt->execute();
+                $stmt->execute([
+                    ':name' => (string)$name,
+                    ':ID' => (int)$ID
+                ]);
                 $rowsAffected = $stmt->rowCount();
 
                 if($rowsAffected <= 0){
@@ -96,14 +111,24 @@ class genres_db{
             //Begin the transaction:
             $db->beginTransaction();
 
+            if(!is_array($arySelectedGenres)){
+                $db->rollBack();
+                return false;
+            }
             foreach ($arySelectedGenres as $item) {
-                $ID = $item[0];
+                $ID = is_array($item) ? ($item[0] ?? null) : null;
                 if(empty($ID)){
                     continue;
                 }
-                $strSqlDelete = "DELETE FROM \"Genres\" WHERE \"ID\" = $ID ";
+                //The ID comes from the browser: it must be a whole number,
+                //and is passed as a bound parameter.
+                if(filter_var($ID, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) === false){
+                    $db->rollBack();
+                    return false;
+                }
+                $strSqlDelete = "DELETE FROM \"Genres\" WHERE \"ID\" = :ID";
                 $stmt = $db->prepare($strSqlDelete);
-                $stmt->execute();
+                $stmt->execute([':ID' => (int)$ID]);
                 $rowsAffected = $stmt->rowCount();
 
                 if($rowsAffected <= 0){

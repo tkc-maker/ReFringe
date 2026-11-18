@@ -13,7 +13,18 @@ class Proposal_Questions_Search_db{
         try {
             $orderBy = '';
             if(!empty($order)){
-                $orderBy = "ORDER BY $order";
+                //"$order" cannot be a bound parameter (it is part of the SQL itself),
+                //so it is checked strictly instead: every item must be a field name in
+                //double quotes (letters, digits, spaces, "_" and "-" only), optionally
+                //followed by ASC or DESC. Anything else is rejected.
+                $items = explode(',', (string)$order);
+                foreach($items as $item){
+                    if(preg_match('/^\s*"[A-Za-z0-9_\- ]+"(\s+(ASC|DESC))?\s*$/i', $item) !== 1){
+                        echo "Invalid sort order.";
+                        return false;
+                    }
+                }
+                $orderBy = "ORDER BY ".implode(', ', array_map('trim', $items));
             }
             //Execute the statement:
             $stmt = $db->query("SELECT * FROM \"proposal_questions_view_2\" $orderBy");

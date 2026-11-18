@@ -261,11 +261,10 @@
                         $ul = $('<ul></ul>').appendTo($cell);
                     }
 
-                    //Add "tag" to the title if "tag" is not empty:
-                    tag = tag.trim();
-                    if(tag !== ''){
-                        itemText += '<br> <i><b>Tag: '+tag+'</b></i>';
-                    }
+                    //The title and tag are stored HTML-encoded (e.g. "&amp;"); decode them
+                    //to plain text, which is then only ever inserted as text (below):
+                    itemText = decodeEntities(itemText);
+                    tag = decodeEntities(tag).trim();
                     
                     //Chop off seconds:
                     start = start.trim();
@@ -279,11 +278,40 @@
                         end = end.slice(0, 5);
                     }
                     
-                    //Create and append the new <li>:
-                    const $li = $('<li draggable="true" id="'+Calendar_ID+'" data-Proposal_details_ID="'+Proposal_details_ID+
-                         '" data-Venues_ID="'+Venues_ID+'" data-day="'+rowIndex+'" data-start="'+start+'" data-end="'+end+
-                         '" data-tag="'+tag+'"></li>').html(itemText);
+                    //Create and append the new <li>. Attributes are set with .attr() and
+                    //text with .text(), so no value can add markup or break out of an
+                    //attribute (e.g. a tag containing '"'):
+                    const $li = $('<li draggable="true"></li>').attr({
+                        'id': Calendar_ID,
+                        'data-proposal_details_id': Proposal_details_ID,
+                        'data-venues_id': Venues_ID,
+                        'data-day': rowIndex,
+                        'data-start': start,
+                        'data-end': end,
+                        'data-tag': tag
+                    });
+                    $li.append(document.createTextNode(itemText));
+                    
+                    //Add "tag" to the title if "tag" is not empty:
+                    if(tag !== ''){
+                        $li.append('<br>', ' ', $('<i></i>').append($('<b></b>').text('Tag: '+tag)));
+                    }
                     $ul.append($li);
+                }
+                
+                /**   Turns HTML entities (e.g. "&amp;") into the characters they stand
+                 * for, and returns plain text (any tags are dropped, keeping their text).
+                 * The text is parsed with DOMParser, into a separate document that never
+                 * runs scripts or loads images.
+                 * 
+                 * @param {string} text
+                 * @returns {string}
+                 */
+                function decodeEntities(text){
+                    if(text === null || text === undefined){
+                        return '';
+                    }
+                    return new DOMParser().parseFromString(String(text), 'text/html').documentElement.textContent;
                 }
                 
                 /**   Compares two 24 hr clock time intervals, formatted consistently.
@@ -611,8 +639,11 @@
                             var start = $(targetLi).data('start');
                             var end = $(targetLi).data('end');
                             var tag = $(targetLi).data('tag');
-                            $('#divBottomContent iframe').attr('src', 'Calendar_Event_Editor.php?title='+title+
-                                    '&calendar_id='+Calendar_ID+'&day='+day+'&start='+start+'&end='+end+'&tag='+tag);
+                            //Each value is URL-encoded, so that e.g. a title containing "&" or "#"
+                            //cannot cut the URL short or add/override parameters:
+                            $('#divBottomContent iframe').attr('src', 'Calendar_Event_Editor.php?title='+encodeURIComponent(title)+
+                                    '&calendar_id='+encodeURIComponent(Calendar_ID)+'&day='+encodeURIComponent(day)+
+                                    '&start='+encodeURIComponent(start)+'&end='+encodeURIComponent(end)+'&tag='+encodeURIComponent(tag));
                             $(targetLi).css('background-color', 'lightblue');
                             break;
                             
@@ -628,8 +659,8 @@
                             var title = $(targetLi).text();
                             var Calendar_ID = $(targetLi).attr('id');
                             var Venues_ID = $(targetLi).data('venues_id');
-                            $('#divBottomContent iframe').attr('src', 'Select_Venue.php?title='+title+
-                                    '&calendar_id='+Calendar_ID+'&venues_id='+Venues_ID);
+                            $('#divBottomContent iframe').attr('src', 'Select_Venue.php?title='+encodeURIComponent(title)+
+                                    '&calendar_id='+encodeURIComponent(Calendar_ID)+'&venues_id='+encodeURIComponent(Venues_ID));
                             $(targetLi).css('background-color', 'lightblue');
                             break;
 

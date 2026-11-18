@@ -1,5 +1,16 @@
 <?php
 class User_Search_ui{
+
+    /**   Escapes a saved search value for display inside an HTML attribute or
+     * <textarea>, so that characters such as " < > & ' show as typed and
+     * cannot change the page. Anything that is not a plain value shows as ''.
+     *
+     * @param mixed $value
+     * @return string
+     */
+    private static function escapeForHtml($value){
+        return is_scalar($value) ? htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8') : '';
+    }
     /**   Displays the "User Search form". A database connection is necessary
      * to populate the Roles drop-downs.
      * 
@@ -8,55 +19,55 @@ class User_Search_ui{
     public static function userSearchDisplay($db){
         $chkInclude_1 = (isset($_SESSION['SU_Include_1']) ? $_SESSION['SU_Include_1'] : true);
         $selRoles_ID_1 = (isset($_SESSION['SU_Roles_ID_1']) ? $_SESSION['SU_Roles_ID_1'] : '');
-        $firstName_1 = (isset($_SESSION['SU_first_name_1']) ? $_SESSION['SU_first_name_1'] : '');
-        $lastName_1 = (isset($_SESSION['SU_last_name_1']) ? $_SESSION['SU_last_name_1'] : '');
-        $street_1 = (isset($_SESSION['SU_street_1']) ? $_SESSION['SU_street_1'] : '');
-        $city_1 = (isset($_SESSION['SU_city_1']) ? $_SESSION['SU_city_1'] : '');
-        $state_1 = (isset($_SESSION['SU_state_1']) ? $_SESSION['SU_state_1'] : '');
-        $zip_1 = (isset($_SESSION['SU_zip_1']) ? $_SESSION['SU_zip_1'] : '');
-        $phone_1 = (isset($_SESSION['SU_phone_1']) ? $_SESSION['SU_phone_1'] : '');
-        $email_1 = (isset($_SESSION['SU_email_1']) ? $_SESSION['SU_email_1'] : '');
-        $username_1 = (isset($_SESSION['SU_username_1']) ? $_SESSION['SU_username_1'] : '');
-        $notes_1 = (isset($_SESSION['SU_notes_1']) ? $_SESSION['SU_notes_1'] : '');
+        $firstName_1 = self::escapeForHtml(isset($_SESSION['SU_first_name_1']) ? $_SESSION['SU_first_name_1'] : '');
+        $lastName_1 = self::escapeForHtml(isset($_SESSION['SU_last_name_1']) ? $_SESSION['SU_last_name_1'] : '');
+        $street_1 = self::escapeForHtml(isset($_SESSION['SU_street_1']) ? $_SESSION['SU_street_1'] : '');
+        $city_1 = self::escapeForHtml(isset($_SESSION['SU_city_1']) ? $_SESSION['SU_city_1'] : '');
+        $state_1 = self::escapeForHtml(isset($_SESSION['SU_state_1']) ? $_SESSION['SU_state_1'] : '');
+        $zip_1 = self::escapeForHtml(isset($_SESSION['SU_zip_1']) ? $_SESSION['SU_zip_1'] : '');
+        $phone_1 = self::escapeForHtml(isset($_SESSION['SU_phone_1']) ? $_SESSION['SU_phone_1'] : '');
+        $email_1 = self::escapeForHtml(isset($_SESSION['SU_email_1']) ? $_SESSION['SU_email_1'] : '');
+        $username_1 = self::escapeForHtml(isset($_SESSION['SU_username_1']) ? $_SESSION['SU_username_1'] : '');
+        $notes_1 = self::escapeForHtml(isset($_SESSION['SU_notes_1']) ? $_SESSION['SU_notes_1'] : '');
 
         $chkInclude_2 = (isset($_SESSION['SU_Include_2']) ? $_SESSION['SU_Include_2'] : false);
         $selRoles_ID_2 = (isset($_SESSION['SU_Roles_ID_2']) ? $_SESSION['SU_Roles_ID_2'] : '');
-        $firstName_2 = (isset($_SESSION['SU_first_name_2']) ? $_SESSION['SU_first_name_2'] : '');
-        $lastName_2 = (isset($_SESSION['SU_last_name_2']) ? $_SESSION['SU_last_name_2'] : '');
-        $street_2 = (isset($_SESSION['SU_street_2']) ? $_SESSION['SU_street_2'] : '');
-        $city_2 = (isset($_SESSION['SU_city_2']) ? $_SESSION['SU_city_2'] : '');
-        $state_2 = (isset($_SESSION['SU_state_2']) ? $_SESSION['SU_state_2'] : '');
-        $zip_2 = (isset($_SESSION['SU_zip_2']) ? $_SESSION['SU_zip_2'] : '');
-        $phone_2 = (isset($_SESSION['SU_phone_2']) ? $_SESSION['SU_phone_2'] : '');
-        $email_2 = (isset($_SESSION['SU_email_2']) ? $_SESSION['SU_email_2'] : '');
-        $username_2 = (isset($_SESSION['SU_username_2']) ? $_SESSION['SU_username_2'] : '');
-        $notes_2 = (isset($_SESSION['SU_notes_2']) ? $_SESSION['SU_notes_2'] : '');
+        $firstName_2 = self::escapeForHtml(isset($_SESSION['SU_first_name_2']) ? $_SESSION['SU_first_name_2'] : '');
+        $lastName_2 = self::escapeForHtml(isset($_SESSION['SU_last_name_2']) ? $_SESSION['SU_last_name_2'] : '');
+        $street_2 = self::escapeForHtml(isset($_SESSION['SU_street_2']) ? $_SESSION['SU_street_2'] : '');
+        $city_2 = self::escapeForHtml(isset($_SESSION['SU_city_2']) ? $_SESSION['SU_city_2'] : '');
+        $state_2 = self::escapeForHtml(isset($_SESSION['SU_state_2']) ? $_SESSION['SU_state_2'] : '');
+        $zip_2 = self::escapeForHtml(isset($_SESSION['SU_zip_2']) ? $_SESSION['SU_zip_2'] : '');
+        $phone_2 = self::escapeForHtml(isset($_SESSION['SU_phone_2']) ? $_SESSION['SU_phone_2'] : '');
+        $email_2 = self::escapeForHtml(isset($_SESSION['SU_email_2']) ? $_SESSION['SU_email_2'] : '');
+        $username_2 = self::escapeForHtml(isset($_SESSION['SU_username_2']) ? $_SESSION['SU_username_2'] : '');
+        $notes_2 = self::escapeForHtml(isset($_SESSION['SU_notes_2']) ? $_SESSION['SU_notes_2'] : '');
 
         $chkInclude_3 = (isset($_SESSION['SU_Include_3']) ? $_SESSION['SU_Include_3'] : false);
         $selRoles_ID_3 = (isset($_SESSION['SU_Roles_ID_3']) ? $_SESSION['SU_Roles_ID_3'] : '');
-        $firstName_3 = (isset($_SESSION['SU_first_name_3']) ? $_SESSION['SU_first_name_3'] : '');
-        $lastName_3 = (isset($_SESSION['SU_last_name_3']) ? $_SESSION['SU_last_name_3'] : '');
-        $street_3 = (isset($_SESSION['SU_street_3']) ? $_SESSION['SU_street_3'] : '');
-        $city_3 = (isset($_SESSION['SU_city_3']) ? $_SESSION['SU_city_3'] : '');
-        $state_3 = (isset($_SESSION['SU_state_3']) ? $_SESSION['SU_state_3'] : '');
-        $zip_3 = (isset($_SESSION['SU_zip_3']) ? $_SESSION['SU_zip_3'] : '');
-        $phone_3 = (isset($_SESSION['SU_phone_3']) ? $_SESSION['SU_phone_3'] : '');
-        $email_3 = (isset($_SESSION['SU_email_3']) ? $_SESSION['SU_email_3'] : '');
-        $username_3 = (isset($_SESSION['SU_username_3']) ? $_SESSION['SU_username_3'] : '');
-        $notes_3 = (isset($_SESSION['SU_notes_3']) ? $_SESSION['SU_notes_3'] : '');
+        $firstName_3 = self::escapeForHtml(isset($_SESSION['SU_first_name_3']) ? $_SESSION['SU_first_name_3'] : '');
+        $lastName_3 = self::escapeForHtml(isset($_SESSION['SU_last_name_3']) ? $_SESSION['SU_last_name_3'] : '');
+        $street_3 = self::escapeForHtml(isset($_SESSION['SU_street_3']) ? $_SESSION['SU_street_3'] : '');
+        $city_3 = self::escapeForHtml(isset($_SESSION['SU_city_3']) ? $_SESSION['SU_city_3'] : '');
+        $state_3 = self::escapeForHtml(isset($_SESSION['SU_state_3']) ? $_SESSION['SU_state_3'] : '');
+        $zip_3 = self::escapeForHtml(isset($_SESSION['SU_zip_3']) ? $_SESSION['SU_zip_3'] : '');
+        $phone_3 = self::escapeForHtml(isset($_SESSION['SU_phone_3']) ? $_SESSION['SU_phone_3'] : '');
+        $email_3 = self::escapeForHtml(isset($_SESSION['SU_email_3']) ? $_SESSION['SU_email_3'] : '');
+        $username_3 = self::escapeForHtml(isset($_SESSION['SU_username_3']) ? $_SESSION['SU_username_3'] : '');
+        $notes_3 = self::escapeForHtml(isset($_SESSION['SU_notes_3']) ? $_SESSION['SU_notes_3'] : '');
 
         $chkInclude_4 = (isset($_SESSION['SU_Include_4']) ? $_SESSION['SU_Include_4'] : false);
         $selRoles_ID_4 = (isset($_SESSION['SU_Roles_ID_4']) ? $_SESSION['SU_Roles_ID_4'] : '');
-        $firstName_4 = (isset($_SESSION['SU_first_name_4']) ? $_SESSION['SU_first_name_4'] : '');
-        $lastName_4 = (isset($_SESSION['SU_last_name_4']) ? $_SESSION['SU_last_name_4'] : '');
-        $street_4 = (isset($_SESSION['SU_street_4']) ? $_SESSION['SU_street_4'] : '');
-        $city_4 = (isset($_SESSION['SU_city_4']) ? $_SESSION['SU_city_4'] : '');
-        $state_4 = (isset($_SESSION['SU_state_4']) ? $_SESSION['SU_state_4'] : '');
-        $zip_4 = (isset($_SESSION['SU_zip_4']) ? $_SESSION['SU_zip_4'] : '');
-        $phone_4 = (isset($_SESSION['SU_phone_4']) ? $_SESSION['SU_phone_4'] : '');
-        $email_4 = (isset($_SESSION['SU_email_4']) ? $_SESSION['SU_email_4'] : '');
-        $username_4 = (isset($_SESSION['SU_username_4']) ? $_SESSION['SU_username_4'] : '');
-        $notes_4 = (isset($_SESSION['SU_notes_4']) ? $_SESSION['SU_notes_4'] : '');
+        $firstName_4 = self::escapeForHtml(isset($_SESSION['SU_first_name_4']) ? $_SESSION['SU_first_name_4'] : '');
+        $lastName_4 = self::escapeForHtml(isset($_SESSION['SU_last_name_4']) ? $_SESSION['SU_last_name_4'] : '');
+        $street_4 = self::escapeForHtml(isset($_SESSION['SU_street_4']) ? $_SESSION['SU_street_4'] : '');
+        $city_4 = self::escapeForHtml(isset($_SESSION['SU_city_4']) ? $_SESSION['SU_city_4'] : '');
+        $state_4 = self::escapeForHtml(isset($_SESSION['SU_state_4']) ? $_SESSION['SU_state_4'] : '');
+        $zip_4 = self::escapeForHtml(isset($_SESSION['SU_zip_4']) ? $_SESSION['SU_zip_4'] : '');
+        $phone_4 = self::escapeForHtml(isset($_SESSION['SU_phone_4']) ? $_SESSION['SU_phone_4'] : '');
+        $email_4 = self::escapeForHtml(isset($_SESSION['SU_email_4']) ? $_SESSION['SU_email_4'] : '');
+        $username_4 = self::escapeForHtml(isset($_SESSION['SU_username_4']) ? $_SESSION['SU_username_4'] : '');
+        $notes_4 = self::escapeForHtml(isset($_SESSION['SU_notes_4']) ? $_SESSION['SU_notes_4'] : '');
 
         $db = openDatabaseConnection();
         $dropdown_1 = Login_db::populateSelRoles($selRoles_ID_1, $db);

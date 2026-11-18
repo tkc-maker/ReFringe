@@ -64,14 +64,16 @@ class User_Search_db{
      */
     public static function searchUsers($jsonSearchUsers, $db){
         try{
-            $query = self::buildSearchSQL($jsonSearchUsers);
+            $query = self::buildSearchSQL($jsonSearchUsers, $params);
 
             if(empty($query)){
                 echo "No search results returned.";
+                return;
             }
 
+            //Execute the statement, with the search values bound as parameters:
             $stmt = $db->prepare($query);
-            $stmt->execute();
+            $stmt->execute($params);
             $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             //Check if the rows exist:
@@ -95,11 +97,21 @@ class User_Search_db{
 
     /**   Dynamically builds an SQL-SELECT statement from the search criteria passed in
      * 
+     * Note: The search values are never put into the SQL text. Each one is
+     *       represented by a placeholder (":p0", ":p1", ...), and its value is
+     *       returned in $params, to be bound when the statement is executed.
+     *       Column names are taken only from a fixed list (see $searchableFields).
+     * 
      * @param JSON $jsonSearchUsers -- Contains search criteria from the User "Search screen".
-     * @return string -- And SQL-SELECT statement.
+     * @param array $params -- (Output.) Set to the placeholder => value pairs for the statement.
+     * @return string -- And SQL-SELECT statement ('' if there is nothing to search for).
      */
-    public static function buildSearchSQL($jsonSearchUsers){
+    public static function buildSearchSQL($jsonSearchUsers, &$params = null){
+        $params = [];
         $arySearchUsers = json_decode($jsonSearchUsers, true);
+        if(!is_array($arySearchUsers)){
+            return '';
+        }
 
         $_SESSION['SU_Include_1'] = $arySearchUsers['Include_1'];   
         $_SESSION['SU_Roles_ID_1'] = $arySearchUsers['Roles_ID_1'];
@@ -155,32 +167,68 @@ class User_Search_db{
 
 
 
+        //The only columns that may be searched. Keys sent by the browser are
+        //only looked up in this list; they are never put into the SQL themselves.
+        //"Roles_ID" is matched exactly (and must be a whole number); the others
+        //are matched with ILIKE.
+        $searchableFields = [
+            'Roles_ID' => '"Roles_ID"',
+            'first_name' => '"first_name"',
+            'last_name' => '"last_name"',
+            'street' => '"street"',
+            'city' => '"city"',
+            'state' => '"state"',
+            'zip' => '"zip"',
+            'phone' => '"phone"',
+            'email' => '"email"',
+            'username' => '"username"',
+            'notes' => '"notes"'
+        ];
+
         $aryCriteria_1 = [];
         $aryCriteria_2 = [];
         $aryCriteria_3 = [];
         $aryCriteria_4 = [];
         foreach ($arySearchUsers as $key => $value) {
-            $segment = '';
-            if(!empty($value)){
-                if(str_contains($key, 'Roles_ID')){
-                    $segment = "\"".substr($key, 0, -2)."\" = $value";
+            $key = (string)$key;
+            if(empty($value) || str_contains($key, 'Include')){
+                continue;
+            }
+            //E.g. "first_name_2" is field "first_name" in criteria column 2:
+            if(preg_match('/^(.+)_([1-4])$/', $key, $matches) !== 1 ||
+               !isset($searchableFields[$matches[1]]) || !is_scalar($value)){
+                continue; //Unknown field, or not a plain value: ignored.
+            }
+            $fieldname = $matches[1];
+            $criteriaColumn = $matches[2];
+            if(empty($arySearchUsers['Include_'.$criteriaColumn])){
+                continue; //That criteria column is not included in the search.
+            }
 
-                }else if(!str_contains($key, 'Include')){
-                    $segment = "\"".substr($key, 0, -2)."\" ILIKE '%$value%'";
+            $placeholder = ':p'.count($params);
+            if($fieldname === 'Roles_ID'){
+                if(filter_var($value, FILTER_VALIDATE_INT) === false){
+                    $params = [];
+                    return ''; //Not a valid Role: nothing is searched.
                 }
+                $params[$placeholder] = (int)$value;
+                $segment = $searchableFields[$fieldname]." = $placeholder";
+            }else{
+                $params[$placeholder] = '%'.$value.'%';
+                $segment = $searchableFields[$fieldname]." ILIKE $placeholder";
+            }
 
-                if(str_ends_with($key, '_1')){
-                    $aryCriteria_1[] = $segment;
+            if($criteriaColumn === '1'){
+                $aryCriteria_1[] = $segment;
 
-                }elseif(str_ends_with($key, '_2')){
-                    $aryCriteria_2[] = $segment;
+            }elseif($criteriaColumn === '2'){
+                $aryCriteria_2[] = $segment;
 
-                }elseif(str_ends_with($key, '_3')){
-                    $aryCriteria_3[] = $segment;
+            }elseif($criteriaColumn === '3'){
+                $aryCriteria_3[] = $segment;
 
-                }elseif(str_ends_with($key, '_4')){
-                    $aryCriteria_4[] = $segment;
-                }
+            }elseif($criteriaColumn === '4'){
+                $aryCriteria_4[] = $segment;
             }
         }
 
@@ -222,6 +270,7 @@ class User_Search_db{
         }
 
         if(empty($strWHERE_1) && empty($strWHERE_2) && empty($strWHERE_3) && empty($strWHERE_4)){
+            $params = [];
             return '';
         }
 

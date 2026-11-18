@@ -91,7 +91,7 @@
                             var selectedQuestion_classes_ID = $("#divPageContent #question_classes").find('option:selected').val();
 
                             loadQuestions(selectedQuestion_classes_ID);
-                            $('#divPageContent #selected_question_class').html(selectedQuestion_class + " Questions:");
+                            $('#divPageContent #selected_question_class').text(selectedQuestion_class + " Questions:");
 
                         } catch (error) {
                             alert('Error: ' + error.message);
@@ -104,7 +104,7 @@
                 $('#divPageContent').on('change', '#question_classes', function() {
                     var selectedQuestion_class = $(this).find('option:selected').text();
                     var selectedQuestion_classes_ID = $(this).find('option:selected').val();
-                    $('#divPageContent #selected_question_class').html(selectedQuestion_class + " Questions:");
+                    $('#divPageContent #selected_question_class').text(selectedQuestion_class + " Questions:");
                     
                     loadQuestions(selectedQuestion_classes_ID);
                 });
@@ -294,18 +294,38 @@
                 });
             }
             
+
+            /**   Turns HTML entities (e.g. "&amp;", "&#039;") into the characters they
+             * stand for, exactly as the browser does inside a <textarea>. Tags are
+             * NOT interpreted: inside a <textarea> the browser never creates
+             * elements, so nothing in the text can run or load.
+             * 
+             * @param {string} text
+             * @returns {string}
+             */
+            function decodeEntities(text){
+                const textarea = document.createElement('textarea');
+                textarea.innerHTML = (text === null || text === undefined) ? '' : String(text);
+                return textarea.value;
+            }
+
             function populateSelectedQuestions(resp){
                 try{
                     $("#selected_questions").html('');
                     var i = 1;
                     resp.forEach(item => {
-                        var q_field = '<textarea class="question_box" data-ordinal="'+(i++)+'">'+item.question+'</textarea>';
-                        $("#selected_questions").html($("#selected_questions").html()+
-                                '<div class="question_row" style="display: flex; align-items: center;">'+q_field+
-                                '<input type="button" class="btnUpdate" value="Update"/>'+
+                        //Built with DOM methods, so that nothing in the question can be
+                        //read as HTML (e.g. "</textarea><img src=x onerror=...>"):
+                        const $row = $('<div class="question_row" style="display: flex; align-items: center;"></div>');
+                        $('<textarea class="question_box"></textarea>')
+                            .attr('data-ordinal', i++)
+                            .val(decodeEntities(item.question))
+                            .appendTo($row);
+                        $row.append('<input type="button" class="btnUpdate" value="Update"/>'+
                                 '<input type="button" class="btnDelete" value="Delete"/>'+
                                 '<input type="button" class="btnUp" value="up"/>'+
-                                '<input type="button" class="btnDown" value="down"/></div>');
+                                '<input type="button" class="btnDown" value="down"/>');
+                        $("#selected_questions").append($row);
                     });
                 }catch(error){
                     alert('Error: '+resp);
