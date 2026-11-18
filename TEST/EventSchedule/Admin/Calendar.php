@@ -10,8 +10,6 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="/TEST/CSS/handsontable.min.css?v=15.2" />
-        <link rel="stylesheet" href="/TEST/CSS/ht-theme-main.min.css?v=15.2" />
         <style>
             #tblSchedule th{
                 font-family: Arial;
@@ -66,7 +64,6 @@
                 background-color: orange;
             }
         </style>
-        <script src="/TEST/JavaScript/handsontable.full.min.js?v=15.2"></script>
         <title>Event Details Editor"</title>
         
         <script src="/TEST/JavaScript/JQuery371.js"></script>

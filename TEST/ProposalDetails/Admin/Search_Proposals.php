@@ -8,8 +8,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="/TEST/CSS/handsontable.min.css?v=15.2" />
-        <link rel="stylesheet" href="/TEST/CSS/ht-theme-main.min.css?v=15.2" />
+        <link rel="stylesheet" href="/TEST/CSS/EditableTable.css?v=1.2" />
         <style>
             #tblCriteria{
                 width: 100%;
@@ -29,6 +28,11 @@
                 background-color: yellow;
                 color: black;
             }
+            .qaScrollBox{
+                position: relative; /* So highlights can be located within the box. */
+                height: 100px; /* Constrain height. */
+                overflow-y: auto; /* Vertical scrollbar for overflowing content. */
+            }
             .fieldHeading{
                 color: brown;
                 font-size: 16pt;
@@ -43,14 +47,14 @@
                 background-color: orange;
             }
         </style>
-        <script src="/TEST/JavaScript/handsontable.full.min.js?v=15.2"></script>
+        <script src="/TEST/JavaScript/EditableTable.js?v=1.2"></script>
         <title>Proposal Search Loaded from View</title>
         
         <script src="/TEST/JavaScript/JQuery371.js"></script>
         
         <script>             
             $(function() {
-                //Initially, display an empty HOT, and initialize the "hot" variable:
+                //Initially, display an empty table, and initialize the "table" variable:
                 $.post('/TEST/ProposalDetails/Admin/Search_Proposals_backend.php',
                     {
                         mode: 'displaySearchProposalScreen'
@@ -58,7 +62,7 @@
                     function(resp){
                         $("#divPageContent").html(resp)
                         $("#divPageContent #divSearchResults").html('');
-                        displayHandsontable([]);
+                        displayTable([]);
                 });
                 
                 $('#divPageContent').on('click', '#btnSearchProposals', function(){
@@ -75,7 +79,7 @@
                             var results = JSON.parse(resp);
                             if(results["status"] === "true"){
                                 var data = results["results"];
-                                hot.loadData(data);
+                                table.loadData(data);
                                 
                             }else{
                                 $('#divPageContent #divSearchResults').html(results["errMsg"]);
@@ -108,7 +112,7 @@
                                     $(this).val('');
                                 }
                             });
-                            hot.loadData([]);
+                            table.loadData([]);
                             
                         }catch(error){
                             alert(error);
@@ -117,86 +121,59 @@
                     });
                 });
                 
-                var hot; //variable for use after this function is called.
-                function displayHandsontable(data){
+                var table; //variable for use after this function is called.
+                function displayTable(data){
                     const container = document.querySelector('#divPageContent #divSearchResults');
                     const QandAcolVal = 10;
                     
-                    hot = new Handsontable(container, {
+                    // Store search text globally (used by the "Questions and Answers" renderer):
+                    let CurrentSearchText = null;
+                    
+                    /**   Renders a date-time without its fractional seconds,
+                     * e.g. "2025-03-01 12:34:56.123456" is shown as "2025-03-01 12:34:56".
+                     */
+                    function dateTimeRenderer(instance, td, row, col, prop, value) {
+                        td.textContent = (value === null || value === undefined) ? '' : String(value).replace(/\.\d+$/, '');
+                    }
+                    
+                    table = new EditableTable(container, {
                       data: data,
                       rowHeaders: true,
                       colHeaders: ['Include?','','Role','First Name','Last Name','Phone','Email','','Title','Question Classes','Questions and Answers', 'CDT', 'UDT'],
-                      hiddenColumns: { columns: [1, 7], indicators: false },        
-                      height: 600, //Explicit height to avoid layout splitting.
+                      hiddenColumns: { columns: [1, 7] }, //Hide the two ID columns (their data is kept).
+                      height: 600, //Explicit height; the table scrolls within it.
                       autoWrapRow: true,
                       autoWrapCol: true,
                       columnSorting: true, //Enable sorting.
-                      filters: true, //Enable filtering.
-                      dropdownMenu: false, //Enable/disable a UI dropdown for filtering/sorting.
-                      stretchH: 'all', //Stretch columns for consistent alignment.
+                      stretchH: 'all', //Stretch columns to fill any spare width.
                       readOnly: false, //Ensure the table is editable.
-                      disableVisualSelection: false, //Allow cell selections, which also enable hooks.
                       columns: [
-                        {type: 'checkbox'}, //Checkbox column.
-                        {type: 'text'},
-                        {type: 'text'},
-                        {type: 'text'},
-                        {type: 'text'},
-                        {type: 'text'},
-                        {type: 'text'},
-                        {type: 'text'},
-                        {type: 'text',
-                            renderer: function(instance, td, row, col, prop, value, cellProperties) {
-                               Handsontable.renderers.HtmlRenderer.apply(this, arguments); // Use HTML renderer for Title.
-                            }
-                        },
-                        {type: 'text',
-                            renderer: function(instance, td, row, col, prop, value, cellProperties) {
-                                Handsontable.renderers.HtmlRenderer.apply(this, arguments); // Use HTML renderer for Question Classes.
-                            }                            
-                        },
-                        {type: 'text', 
-                            renderer: function(instance, td, row, col, prop, value, cellProperties) {
-                                // Set new innerHTML
-                                const processedValue = `${value}`;
-
-                                //Pass the processed value to HtmlRenderer:
-                                Handsontable.renderers.HtmlRenderer.apply(this, [instance, td, row, col, prop, processedValue, cellProperties]);                        
-
-                                td.style.minHeight = '100px'; //Constrain height.
-                                td.style.maxHeight = '100px'; //Constrain height.
-                                td.style.overflowY = 'auto'; //Enable vertical scrollbars for overflowing content.
-                                td.style.display = 'block'; //Ensure the cell acts as a block element.
-
-                                if (col === 10 && CurrentSearchText && value) {
-                                    const regex = new RegExp(`(${CurrentSearchText})`, 'gi');
-                                    const safeValue = Handsontable.helper.stringify(value);
-
-                                    //Replace matching substring with highlighted span:
-                                    td.innerHTML = safeValue.replace(regex, '<span class="yellowit">$1</span>');
+                        {type: 'checkbox', width: 75}, //Checkbox column.
+                        {type: 'text'}, //(Hidden.)
+                        {type: 'text', width: 90}, //Role.
+                        {type: 'text', width: 100}, //First Name.
+                        {type: 'text', width: 100}, //Last Name.
+                        {type: 'text', width: 110}, //Phone.
+                        {type: 'text', width: 170}, //Email.
+                        {type: 'text'}, //(Hidden.)
+                        {type: 'html', width: 170}, //Title: HTML, so that e.g. "&amp;" shows as "&".
+                        {type: 'html', width: 150}, //Question Classes.
+                        {type: 'html', width: 600, //Questions and Answers, in a scrolling box.
+                            renderer: function(instance, td, row, col, prop, value) {
+                                const box = document.createElement('div');
+                                box.className = 'qaScrollBox';
+                                EditableTable.setSafeHtml(box, value); //Keeps only basic formatting tags.
+                                
+                                if (col === QandAcolVal && CurrentSearchText) {
+                                    //Highlight matches of the "Refine" search text:
+                                    EditableTable.highlightText(box, CurrentSearchText, 'yellowit');
                                 }
-                                return td;
+                                td.appendChild(box);
                             }
                         },
-                        {type: 'text',
-                            renderer: (instance, td, row, col, prop, value) => {
-                                td.textContent = value.replace(/\.\d+$/, '');
-                            }
-                        },
-                        {type: 'text',
-                            renderer: (instance, td, row, col, prop, value) => {
-                                td.textContent = value.replace(/\.\d+$/, '');
-                            }
-                        }
-                      ],
-                        cells: function (row, col) {
-                          const cellProperties = {};
-                          if (col === 10) {
-                            cellProperties.width = 600; // acts like max width
-                          }
-                          return cellProperties;
-                        },
-                        licenseKey: 'non-commercial-and-evaluation' //For non-commercial use only.
+                        {type: 'text', width: 100, renderer: dateTimeRenderer}, //CDT.
+                        {type: 'text', width: 100, renderer: dateTimeRenderer}  //UDT.
+                      ]
                     });
                     
                     //=================================================================================================
@@ -205,7 +182,7 @@
 
                     $('#divPageContent').on('click', '#btnClearVisibleHighlights', function(){
                         CurrentSearchText = null;//This stops the renderer from painting highlights.
-                        hot.render();
+                        table.render();
                     });
                     
                     $('#divPageContent').on('click', '#btnClearRefineCriteria', function(){
@@ -218,16 +195,13 @@
                         function(){
                             try{
                                 $('#divPageContent #txtRefineSearch').val(tempSearchText);
-                                hot.render();
+                                table.render();
                             }catch(error){
                                 alert(error);
                             }
                         });
                     });
                     
-                    // Store search text globally:
-                    let CurrentSearchText = null;
-
                     $('#divPageContent').on('click', '#btnRefineSearch', function(){
                         CurrentSearchText = $('#txtRefineSearch').val();
                         
@@ -238,23 +212,10 @@
                         }, 
                         function(){
                             try{
-                                //Ensures proper table recalculation:
-                                hot.refreshDimensions();
-                                //Activates the renderer for col-10 that highlights matches
-                                //of "CurrentSearchText":
-                                hot.render();
-                                //Hammer the DOM three times to find matches:
-                                requestAnimationFrame(() => {
-                                    setTimeout(() => {
-                                        scrollToHighlights();
-                                    }, 500); // 500 ms = 0.5 seconds
-                                    setTimeout(() => {
-                                        scrollToHighlights();
-                                    }, 1000); // 500 ms = 0.5 seconds
-                                    setTimeout(() => {
-                                        scrollToHighlights();
-                                    }, 1500); // 500 ms = 0.5 seconds
-                                });
+                                //Redraw, so that the "Questions and Answers" renderer
+                                //highlights matches of "CurrentSearchText":
+                                table.render();
+                                scrollToHighlights();
                                 
                             }catch(error){
                                 alert(error);
@@ -262,29 +223,36 @@
                         });
                     });
                     
-                    /**   Called by the above refine-search handler. Highlights matchea
-                     * and scrolls cell contents to the first highlights in each cell.
+                    /**   Called by the above refine-search handler. Scrolls each
+                     * "Questions and Answers" box to its first highlight, and then
+                     * scrolls the table to the first row containing a highlight.
                      */
                     function scrollToHighlights(){
-                         const colIndex = 10;
-                        for(let row = 0; row < hot.countRows(); row++) {
-                            hot.scrollViewportTo(row, colIndex); //This must be done for `.getCell` to work.
-                            var td = hot.getCell(row, colIndex);
-                            if(td){
-                                td.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                var highlight = td.querySelector('.yellowit');
-                                if(highlight){
-                                    highlight.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        const colIndex = 10;
+                        let firstHighlightedRow = null;
+                        
+                        for(let row = 0; row < table.countRows(); row++) {
+                            const td = table.getCell(row, colIndex);
+                            const box = td ? td.querySelector('.qaScrollBox') : null;
+                            const highlight = box ? box.querySelector('.yellowit') : null;
+                            if(highlight){
+                                //Centre the first highlight within the cell's scrolling box:
+                                box.scrollTop = highlight.offsetTop - (box.clientHeight - highlight.offsetHeight) / 2;
+                                if(firstHighlightedRow === null){
+                                    firstHighlightedRow = row;
                                 }
                             }
-                        }                                                  
+                        }
+                        if(firstHighlightedRow !== null){
+                            table.scrollViewportTo(firstHighlightedRow, colIndex);
+                        }
                     }
                     
                     //=================================================================================================
                     //==== Export Checked Rows without HTML ====
                     //=================================================================================================
 
-                    /**   Scans the HOT for rows that have been checked (first column). 
+                    /**   Scans the table for rows that have been checked (first column). 
                      * Stores each row found into an array of rows for use by the
                      * exporting functions.
                      * 
@@ -294,11 +262,11 @@
                         var checkedRows = [];
 
                         // Loop through all rows
-                        for (let rowIndex = 0; rowIndex < hot.countRows(); rowIndex++) {
-                            const isChecked = hot.getDataAtCell(rowIndex, 0); //Get the value from the checkbox column.
+                        for (let rowIndex = 0; rowIndex < table.countRows(); rowIndex++) {
+                            const isChecked = table.getDataAtCell(rowIndex, 0); //Get the value from the checkbox column.
 
                             if (isChecked === true) { //Check if the checkbox is marked.
-                                checkedRows.push(hot.getDataAtRow(rowIndex).slice(1)); //Exclude the checkbox column.
+                                checkedRows.push(table.getDataAtRow(rowIndex).slice(1)); //Exclude the checkbox column.
                             }
                         }
 
@@ -336,8 +304,8 @@
                             return;
                         }
                         // Loop through all rows, and uncheck them:
-                        for (let rowIndex = 0; rowIndex < hot.countRows(); rowIndex++) {
-                            hot.setDataAtCell(rowIndex, 0, false);
+                        for (let rowIndex = 0; rowIndex < table.countRows(); rowIndex++) {
+                            table.setDataAtCell(rowIndex, 0, false);
                         }                       
                     });
 
@@ -371,7 +339,7 @@
                     //==== Edit First Checked Row ====
                     //=================================================================================================
                     
-                    /**   Scans the HOT for rows that have been checked (first column). 
+                    /**   Scans the table for rows that have been checked (first column). 
                      * Stores the first row found for use by the Proposal Editor.
                      * 
                      * @returns {Array} Data for the Proposal Editor.
@@ -381,11 +349,11 @@
                         var checkedRow = [];
 
                         // Loop through all rows
-                        for (let rowIndex = 0; rowIndex < hot.countRows(); rowIndex++) {
-                            const isChecked = hot.getDataAtCell(rowIndex, 0); //Get the value from the checkbox column.
+                        for (let rowIndex = 0; rowIndex < table.countRows(); rowIndex++) {
+                            const isChecked = table.getDataAtCell(rowIndex, 0); //Get the value from the checkbox column.
 
                             if (isChecked === true) { //Check if the checkbox is marked.
-                                checkedRow = hot.getDataAtRow(rowIndex).slice(1); //Exclude the checkbox column.
+                                checkedRow = table.getDataAtRow(rowIndex).slice(1); //Exclude the checkbox column.
                                 break; //Stop once the first checked row is found.
                             }
                         }
@@ -420,7 +388,7 @@
                             }
                         });                                        
                     });
-                };//End function, "displayHandsontable".
+                };//End function, "displayTable".
                 
                 //=================================================================================================
                 function submitSearchProposals(){
@@ -476,7 +444,7 @@
                             var results = JSON.parse(resp);
                             if(results["status"] === "true"){
                                 var data = results["results"];
-                                hot.loadData(data);
+                                table.loadData(data);
                                 
                             }else{
                                 alert(results["errMsg"]);

@@ -2,7 +2,7 @@
 
 class General_Event_ui {
     /**   Displays a screen for viewing/editing an individual event. Contains holders for
-     * three Handsontables. Also, has a button to return to the Proposal Editor.
+     * three tables. Also, has a button to return to the Proposal Editor.
      * 
      * Note: This UI function is designed for the "Proposer" role.
      * 
@@ -24,7 +24,7 @@ class General_Event_ui {
             "<span id=\"maxOccurencesErrMsg\" class=\"errMsg\"></span></td></tr>".
             "</table><br></td></tr>".
             "<tr><td class=\"hotHeading\" colspan=\"2\">*Days and Times Available (check all that apply): <span id=\"preferredTimesErrMsg\" class=\"errMsg\"></span></td></tr>".
-            "<tr><td colspan=\"2\"><div id=\"divPreferredTimes\" class=\"ht-theme-main-dark\"></div></td></tr>".
+            "<tr><td colspan=\"2\"><div id=\"divPreferredTimes\" class=\"et-theme-dark\"></div></td></tr>".
             "<tr><td class=\"fieldHeading\"><br>New Member: <input type=\"text\" id=\"txtNewMember\"/>".
             "<br>Shareable? <input type=\"checkbox\" id=\"chkNewMemberShareable\"/>".
             "&nbsp;&nbsp;&nbsp;&nbsp;<input type=\"button\" id=\"btnAddNewMember\" value=\"Add New Member\"/></td>".    
@@ -32,12 +32,12 @@ class General_Event_ui {
             "<br>Shareable? <input type=\"checkbox\" id=\"chkNewResourceShareable\"/>".
             "&nbsp;&nbsp;&nbsp;&nbsp;<input type=\"button\" id=\"btnAddNewResource\" value=\"Add New Resource\"/></td></tr>".
             "<tr><td class=\"hotHeading\">Existing Members:</td><td class=\"hotHeading\">Existing Resources:</td></tr>".
-            "<tr><td><div id=\"divMembers\" class=\"ht-theme-main-dark\"></div><br></td><td><div id=\"divResources\" class=\"ht-theme-main-dark\"></div><br></td></tr>".
+            "<tr><td><div id=\"divMembers\" class=\"et-theme-dark\"></div><br></td><td><div id=\"divResources\" class=\"et-theme-dark\"></div><br></td></tr>".
             "</table><input type=\"button\" id=\"btnSaveEvent\" value=\"Save Event Details\"/>";
     }//End function, "displayEventDetailsScreen".
     
     /**   Displays a screen for viewing/editing an individual event. Contains holders for
-     * three Handsontables. Also, has a button to return to the Proposal Editor.
+     * three tables. Also, has a button to return to the Proposal Editor.
      * 
      * Note: This UI function is designed for the "Organizer" and "SuperUser" roles.
      *       Beneath the heading, Proposer identification fields are shown.
@@ -71,7 +71,7 @@ class General_Event_ui {
             "<span id=\"maxOccurencesErrMsg\" class=\"errMsg\"></span></td></tr>".
             "</table><br></td></tr>".
             "<tr><td class=\"hotHeading\" colspan=\"2\">*Days and Times Available (check all that apply): <span id=\"preferredTimesErrMsg\" class=\"errMsg\"></span></td></tr>".
-            "<tr><td colspan=\"2\"><div id=\"divPreferredTimes\" class=\"ht-theme-main-dark\"></div></td></tr>".
+            "<tr><td colspan=\"2\"><div id=\"divPreferredTimes\" class=\"et-theme-dark\"></div></td></tr>".
             "<tr><td class=\"fieldHeading\"><br>New Member: <input type=\"text\" id=\"txtNewMember\"/>".
             "<br>Shareable? <input type=\"checkbox\" id=\"chkNewMemberShareable\"/>".
             "&nbsp;&nbsp;&nbsp;&nbsp;<input type=\"button\" id=\"btnAddNewMember\" value=\"Add New Member\"/></td>".    
@@ -79,7 +79,7 @@ class General_Event_ui {
             "<br>Shareable? <input type=\"checkbox\" id=\"chkNewResourceShareable\"/>".
             "&nbsp;&nbsp;&nbsp;&nbsp;<input type=\"button\" id=\"btnAddNewResource\" value=\"Add New Resource\"/></td></tr>".
             "<tr><td class=\"hotHeading\">Existing Members:</td><td class=\"hotHeading\">Existing Resources:</td></tr>".
-            "<tr><td><div id=\"divMembers\" class=\"ht-theme-main-dark\"></div></td><td><div id=\"divResources\" class=\"ht-theme-main-dark\"></div></td></tr>".
+            "<tr><td><div id=\"divMembers\" class=\"et-theme-dark\"></div></td><td><div id=\"divResources\" class=\"et-theme-dark\"></div></td></tr>".
             "<tr><td colspan=\"2\"><br><input type=\"button\" class=\"btnSaveGeneralEvent\" value=\"Save General Event\"/></td></tr>".
             "</table>";
     }//End function, "displayEventDetailsScreen_Admin".

@@ -1,0 +1,201 @@
+/*
+ * Styles for EditableTable (/TEST/JavaScript/EditableTable.js).
+ *
+ * The look is controlled by the custom properties below. The default is a
+ * light theme; add the class "et-theme-dark" to the table's container for
+ * the dark theme.
+ */
+.et-container {
+    --et-font-size: 14px;
+    --et-line-height: 20px;
+    --et-foreground: #222222;
+    --et-background: #ffffff;
+    --et-border: #e2e2e6;
+    --et-header-foreground: #222222;
+    --et-header-background: #f5f5f7;
+    --et-header-active-background: #e3e8fd;
+    --et-readonly-foreground: #8a8a8f;
+    --et-accent: #1a42e8;
+    --et-editor-foreground: #000000;
+    --et-editor-background: #ffffff;
+    --et-scrollbar-track: #f0f0f2;
+    --et-scrollbar-thumb: #b5b5ba;
+
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: var(--et-font-size);
+    line-height: var(--et-line-height);
+    color: var(--et-foreground);
+}
+
+.et-container.et-theme-dark {
+    --et-foreground: #c7c7c7;
+    --et-background: #0f0f10;
+    --et-border: #313132;
+    --et-header-foreground: #c7c7c7;
+    --et-header-background: #1e1e1f;
+    --et-header-active-background: #2a3566;
+    --et-readonly-foreground: #6d6e71;
+    --et-accent: #476af7;
+    --et-editor-foreground: #ffffff;
+    --et-editor-background: #0f0f10;
+    --et-scrollbar-track: #19191c;
+    --et-scrollbar-thumb: #68696c;
+
+    color-scheme: dark;    /* Dark native checkboxes and scrollbars. */
+}
+
+/* The scrolling box around the table. Width/height are set from the settings. */
+.et-wrapper {
+    position: relative;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: visible;
+    background-color: var(--et-background);
+    border: 1px solid var(--et-border);
+    border-radius: 4px;
+    box-sizing: border-box;
+    scrollbar-color: var(--et-scrollbar-thumb) var(--et-scrollbar-track);
+    scroll-padding-top: 30px;    /* Keep keyboard-selected cells clear of the sticky header. */
+    scroll-padding-left: 50px;   /* ...and of the row numbers. */
+}
+.et-wrapper.et-fixed-height {
+    overflow-y: auto;
+}
+.et-wrapper:focus {
+    outline: none;
+}
+.et-wrapper:focus-visible {
+    box-shadow: 0 0 0 2px var(--et-accent);
+}
+
+.et-table {
+    margin: 0;    /* Ignore pages' general "table { margin... }" rules. */
+    color: var(--et-foreground);
+    font: inherit;    /* Tables don't inherit fonts/colors in quirks mode. */
+    table-layout: fixed;
+    border-collapse: separate;    /* "separate" keeps borders on sticky headers. */
+    border-spacing: 0;
+    background-color: var(--et-background);
+}
+
+.et-table th,
+.et-table td {
+    box-sizing: border-box;
+    height: 29px;
+    padding: 4px 8px;
+    border-right: 1px solid var(--et-border);
+    border-bottom: 1px solid var(--et-border);
+    vertical-align: top;
+    text-align: left;
+    overflow-wrap: anywhere;    /* Long regexes without spaces still wrap. */
+    white-space: pre-wrap;
+}
+.et-table tr > :last-child {
+    border-right: none;
+}
+
+/* Headers */
+.et-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    color: var(--et-header-foreground);
+    background-color: var(--et-header-background);
+    font-weight: normal;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    user-select: none;
+}
+.et-table .et-row-header {
+    position: sticky;    /* Row numbers stay visible when scrolling sideways. */
+    left: 0;
+    z-index: 1;
+    color: var(--et-header-foreground);
+    background-color: var(--et-header-background);
+    font-weight: normal;
+    text-align: center;
+    user-select: none;
+}
+.et-table thead th.et-corner {
+    left: 0;
+    z-index: 3;    /* Above both the column headers and the row numbers. */
+}
+.et-table th.et-header-active {
+    background-color: var(--et-header-active-background);
+}
+.et-table th.et-sortable {
+    cursor: pointer;
+}
+.et-table th.et-sortable:hover {
+    text-decoration: underline;
+}
+.et-table th.et-sorted-asc .et-header-label::after {
+    content: " \25B2";    /* Up-pointing triangle. */
+    font-size: 0.75em;
+}
+.et-table th.et-sorted-desc .et-header-label::after {
+    content: " \25BC";    /* Down-pointing triangle. */
+    font-size: 0.75em;
+}
+
+/* Body cells */
+.et-table td {
+    cursor: default;
+    user-select: none;
+}
+.et-table td.et-html-cell {
+    white-space: pre-line;    /* HTML: collapse spaces, but keep typed line breaks. */
+}
+.et-table td.et-html-cell p {
+    margin: 0 0 0.5em 0;
+}
+.et-table td.et-readonly {
+    color: var(--et-readonly-foreground);
+}
+.et-table td.et-selected {
+    box-shadow: inset 0 0 0 2px var(--et-accent);
+}
+.et-table td.et-checkbox-cell {
+    padding-top: 7px;    /* Lines the box up with the first line of text. */
+    padding-bottom: 0;
+}
+.et-table .et-checkbox {
+    margin: 0;
+    vertical-align: middle;
+    accent-color: var(--et-accent);
+    cursor: pointer;
+}
+.et-table .et-checkbox:disabled {
+    cursor: default;
+}
+
+/* Cell alignment helpers, for use in a column's "className" setting. */
+.et-table td.et-center {
+    text-align: center;
+}
+.et-table td.et-right {
+    text-align: right;
+}
+
+/* The in-cell text editor */
+.et-table td.et-editing {
+    padding: 0;
+    box-shadow: inset 0 0 0 2px var(--et-accent);
+}
+.et-table .et-editor {
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 28px;
+    margin: 0;
+    padding: 4px 8px;
+    border: 2px solid var(--et-accent);
+    outline: none;
+    resize: none;
+    overflow: hidden;
+    font: inherit;
+    color: var(--et-editor-foreground);
+    background-color: var(--et-editor-background);
+    user-select: text;
+}

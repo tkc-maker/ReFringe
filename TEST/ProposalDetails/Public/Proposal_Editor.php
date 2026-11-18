@@ -11,8 +11,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="/TEST/CSS/handsontable.min.css?v=15.2" />
-        <link rel="stylesheet" href="/TEST/CSS/ht-theme-main.min.css?v=15.2" />
+        <link rel="stylesheet" href="/TEST/CSS/EditableTable.css?v=1.2" />
         <style>
             #divPageContent{
                 position: relative;
@@ -80,6 +79,9 @@
                 margin: 4px;
                 text-align: left;
             }
+            #divQuestionClasses td.lockedCell{
+                background-color: #e0e0e0; /* Light gray: this checkbox cannot be changed. */
+            }
             input[type="button"]{
                 margin: 4px;
                 font-size: 12pt; 
@@ -104,7 +106,7 @@
               clip: rect(0 0 0 0);
             }            
         </style>
-        <script src="/TEST/JavaScript/handsontable.full.min.js?v=15.2"></script>
+        <script src="/TEST/JavaScript/EditableTable.js?v=1.2"></script>
         <title>Proposal Details Editor"</title>
         
         <script src="/TEST/JavaScript/JQuery371.js"></script>
@@ -119,12 +121,12 @@
                     function(resp){
                         $("#divPageContent").html(resp);
                         
-                        //Initially, display an empty HOT, and initialize the "hot..." variables:
-                        //-----------------------------------------------------------------------
-                        displayHotQuestionClasses([]);
+                        //Initially, display an empty table, and initialize the "table..." variables:
+                        //---------------------------------------------------------------------------
+                        displayTableQuestionClasses([]);
                         
-                        //Now populate the Handsontable:
-                        //------------------------------
+                        //Now populate the table:
+                        //-----------------------
                         displayAllQuestionClassesFromDb();
                        
                         //Now get all Screenfield Validation records:
@@ -140,42 +142,35 @@
                 const rowHeight = 30; //Approximate row height.
                 const extraPadding = 50; //Extra space for UI elements.
 
-                function getDynamicHeight(hot) {
-                    const rowCount = hot.countRows();
+                function getDynamicHeight(table) {
+                    const rowCount = table.countRows();
                     return Math.min(rowHeight * rowCount + extraPadding, 450); //Max height in px.
                 }
                 
-                var hotQuestionClasses; //Variable for use after this function is called.
-                function displayHotQuestionClasses(data){
+                var tableQuestionClasses; //Variable for use after this function is called.
+                function displayTableQuestionClasses(data){
                     const container = document.querySelector('#divPageContent #divQuestionClasses');
                     
-                    hotQuestionClasses = new Handsontable(container, {
+                    tableQuestionClasses = new EditableTable(container, {
                       data: data,
                       rowHeaders: true,
                       colHeaders: ['Include?','','Name'],
-                      hiddenColumns: { columns: [1], indicators: false },        
+                      hiddenColumns: { columns: [1] }, //Hide the "ID" column (its data is kept).
                       autoWrapRow: true,
                       autoWrapCol: true,
                       columnSorting: true, //Enable sorting.
-                      filters: false,
-                      dropdownMenu: false,
                       readOnly: false, //Ensure the table is editable.
-                      disableVisualSelection: false, //Allow cell selections, which also enable hooks.
                       columns: [
-                        {type: 'checkbox', width: 100, className: "htCenter"}, //Checkbox column.
+                        {type: 'checkbox', width: 100, className: "et-center"}, //Checkbox column.
                         {type: 'text'},
                         {type: 'text', width: 430}
                       ],
-                      cells: function (row, col) { 
+                      cells: function (row, col) { //Note: "row" is the row's position as loaded, even after sorting.
                           const cellProperties = {};
                           //Dissable the checkbox on the "Quick Easy No Login Proposal" Question Class.
                           if (col === 0 && row === 0) { 
-                              cellProperties.readOnly = true;                             
-                              cellProperties.renderer = Handsontable.renderers.CheckboxRenderer;
-                              cellProperties.renderer = function(instance, td, row, col, prop, value, cellProps){ 
-                                  Handsontable.renderers.CheckboxRenderer.apply(this, arguments);
-                                  td.style.backgroundColor = '#e0e0e0'; // light gray
-                              }; 
+                              cellProperties.readOnly = true;
+                              cellProperties.className = 'et-center lockedCell'; //Light gray; see CSS.
                           };
                           return cellProperties;
                       },
@@ -183,13 +178,12 @@
                          if(coords.col === 0 && coords.row !== 0){ //Detect checkbox clicks, except on first row.
                             $("#divPageContent #btnShowQandA").css("background-color", "red");
                          }
-                      },
-                      licenseKey: 'non-commercial-and-evaluation' //For non-commercial use only.
+                      }
                     });
 
-                };//End function, "displayHotQuestionClasses".
+                };//End function, "displayTableQuestionClasses".
                 
-                /**   Refreshes the Question Classes Handsontable from the database.
+                /**   Refreshes the Question Classes table from the database.
                  * Should an error occur, it is displayed in an alert and in "divPageContent".
                  */
                 function displayAllQuestionClassesFromDb(){
@@ -208,11 +202,11 @@
                                             aryData.push([include, item.ID, item.name]);
                                         }
                                     });
-                                    hotQuestionClasses.loadData(aryData);
-                                    hotQuestionClasses.updateSettings({ height: getDynamicHeight(hotQuestionClasses) });
+                                    tableQuestionClasses.loadData(aryData);
+                                    tableQuestionClasses.updateSettings({ height: getDynamicHeight(tableQuestionClasses) });
                          
-                                    //Populate Title, and make selections on Hot:
-                                    //-------------------------------------------
+                                    //Populate Title, and make selections on table:
+                                    //---------------------------------------------
                                     displayTitleAndSelectionsFromDb();
                                }    
 
@@ -225,7 +219,7 @@
 
                 /**   Displays the saved title, and selects the saved checkboxes
                  * (actually, the corresponding "ID" values to those saved) 
-                 * on the Handsontable. Should errors occur, they first appear
+                 * on the table. Should errors occur, they first appear
                  * in an alert box, and then on the screen.
                  * 
                  * @returns {undefined}
@@ -233,8 +227,8 @@
                 //This would be different from the one POSTed if the Proposal Details
                 //are being created anew, and not simply edited:
                 function displayTitleAndSelectionsFromDb(){
-                    //Only run this function if the HOT contains rows:
-                    if(hotQuestionClasses.getData().length === 0){
+                    //Only run this function if the table contains rows:
+                    if(tableQuestionClasses.getData().length === 0){
                         return;
                     }
                     
@@ -271,13 +265,13 @@
                                     $('#divPageContent #txtTitle').css('background-color', '#e0e0e0');
                                     $('#divPageContent #titleErrMsg').text('');
                                     
-                                    //Select checkboxes on the "Question Classes" Hot:
-                                    //------------------------------------------------
+                                    //Select checkboxes on the "Question Classes" table:
+                                    //--------------------------------------------------
                                     try{
-                                        aryData = hotQuestionClasses.getData();
+                                        aryData = tableQuestionClasses.getData();
                                         aryData.forEach((item, rowIndex) => {
                                             if (question_classes.some(itemQuestionClasses => parseInt(itemQuestionClasses.ID) === item[1])) { //Check if ID exists in question_classes.
-                                                hotQuestionClasses.setDataAtCell(rowIndex, 0, true); //Update checkbox column.
+                                                tableQuestionClasses.setDataAtCell(rowIndex, 0, true); //Update checkbox column.
                                             }
                                         });
                                                                             
@@ -310,7 +304,7 @@
                 }//End function, "displayTitleAndSelectionsFromDb".
                 
                 function getInitialQandAdisplay(){
-                    var jsonSelectedQuestionClasses = JSON.stringify(getCheckedRows(hotQuestionClasses));
+                    var jsonSelectedQuestionClasses = JSON.stringify(getCheckedRows(tableQuestionClasses));
                     $.post('/TEST/ProposalDetails/Public/Proposal_Editor_backend.php',
                         {
                             mode: 'displayQuestionAnswerBlocksWithoutSavingAnything',
@@ -350,7 +344,7 @@
                     //Also, Display Question/Answer blocks:
                     //----------------------------------------------------------
                     var title = $('#divPageContent #txtTitle').val();
-                    var jsonSelectedQuestionClasses = JSON.stringify(getCheckedRows(hotQuestionClasses));
+                    var jsonSelectedQuestionClasses = JSON.stringify(getCheckedRows(tableQuestionClasses));
                     $.post('/TEST/ProposalDetails/Public/Proposal_Editor_backend.php',
                         {
                             mode: 'displayQuestionAnswerBlocks',
@@ -458,25 +452,25 @@
                      return JSON.stringify(aryClassesQuestionsAnswers);
                  }
 
-                 /**   Scans the passed-in HOT for rows that have been checked (first column). 
+                 /**   Scans the passed-in table for rows that have been checked (first column). 
                   * Stores each row found into an array of rows for use by subsequent functions.
                   * 
                   * Note: Each row contains an associative array of 'ID' and 'name', consistent
-                  *       with the columns of the HOTs.
+                  *       with the columns of the tables.
                   * 
-                  * @param {Handsontable} hot -- A Handsontable instance
+                  * @param {EditableTable} table -- An EditableTable instance
                   * @returns {Array of Arrays} Data to be saved or deleted.
                   *
                   */
-                 function getCheckedRows(hot) {
+                 function getCheckedRows(table) {
                      var checkedRows = [];
 
                      // Loop through all rows
-                     for (let rowIndex = 0; rowIndex < hot.countRows(); rowIndex++) {
-                         const isChecked = hot.getDataAtCell(rowIndex, 0); //Get the value from the checkbox column.
+                     for (let rowIndex = 0; rowIndex < table.countRows(); rowIndex++) {
+                         const isChecked = table.getDataAtCell(rowIndex, 0); //Get the value from the checkbox column.
 
                          if (isChecked === true) { //Check if the checkbox is marked.
-                             var row = hot.getDataAtRow(rowIndex).slice(1); //Exclude the checkbox column.
+                             var row = table.getDataAtRow(rowIndex).slice(1); //Exclude the checkbox column.
 
                              checkedRows.push({'ID': row[0], 'name': row[1]});
                          }

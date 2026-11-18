@@ -10,8 +10,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="/TEST/CSS/handsontable.min.css?v=15.2" />
-        <link rel="stylesheet" href="/TEST/CSS/ht-theme-main.min.css?v=15.2" />
+        <link rel="stylesheet" href="/TEST/CSS/EditableTable.css?v=1.2" />
         <style>
             #divPageContent{
                 position: relative;
@@ -98,7 +97,7 @@
                 background-color: orange;
             }
         </style>
-        <script src="/TEST/JavaScript/handsontable.full.min.js?v=15.2"></script>
+        <script src="/TEST/JavaScript/EditableTable.js?v=1.2"></script>
         <title>Event Details Editor"</title>
         
         <script src="/TEST/JavaScript/JQuery371.js"></script>
@@ -115,14 +114,14 @@
                     function(resp){
                         $("#divPageContent").html(resp);
                         
-                        //Initially, display an empty HOT, and initialize the "hot..." variables:
-                        //-----------------------------------------------------------------------
-                        displayHotPreferredTimes([], {});
-                        displayHotExistingMembers([]);
-                        displayHotExistingResources([]);
+                        //Initially, display an empty table, and initialize the "table..." variables:
+                        //---------------------------------------------------------------------------
+                        displayTablePreferredTimes([], {});
+                        displayTableExistingMembers([]);
+                        displayTableExistingResources([]);
                          
-                        //Now populate event fields and the three Handsontables:
-                        //------------------------------------------------------
+                        //Now populate event fields and the three tables:
+                        //-----------------------------------------------
                         displayMainSelectionsFromDb();
                         
                         //Now get all Screenfield Validation records:
@@ -230,7 +229,7 @@
                     
                     var duration = $('#txtDuration').val();
                     var maxOccurences = $('#txtMaxOccurences').val();
-                    var preferredTimes = hotPreferredTimes.getSourceData();
+                    var preferredTimes = tablePreferredTimes.getSourceData();
                     var Proposal_details_ID = <?php echo $Proposal_details_ID; ?>;
                     
                     const jsonEvent = JSON.stringify({
@@ -265,40 +264,37 @@
                 const rowHeight = 30; //Approximate row height.
                 const extraPadding = 50; //Extra space for UI elements.
 
-                function getDynamicHeight(hot) {
-                    const rowCount = hot.countRows();
+                function getDynamicHeight(table) {
+                    const rowCount = table.countRows();
                     return Math.min(rowHeight * rowCount + extraPadding, 450); //Max height in px.
                 }
                 
-                var hotPreferredTimes; //Variable for use after this function is called.
-                function displayHotPreferredTimes(data, columns){
+                var tablePreferredTimes; //Variable for use after this function is called.
+                function displayTablePreferredTimes(data, columns){
                     const container = document.querySelector('#divPageContent #divPreferredTimes');
                     
-                    hotPreferredTimes = new Handsontable(container, {
+                    tablePreferredTimes = new EditableTable(container, {
                       data: data,
                       columns: columns,
                       rowHeaders: false,
                       width: 800,
-                      columnSorting: false, //Enable sorting.
-                      filters: false,
-                      dropdownMenu: false,
+                      height: 150, //The container's fixed height: the table scrolls within it.
+                      columnSorting: false, //Disable sorting.
                       readOnly: false, //Ensure the table is editable.
-                      disableVisualSelection: false, //Allow cell selections, which also enable hooks.
                       afterOnCellMouseDown: function(event, coords){
                          if(coords.col > 0){
                             //Change "Save Event" button color to red: 
                             $("#divPageContent .btnSaveGeneralEvent").css("background-color", "red");
                          }
-                      },
-                      licenseKey: 'non-commercial-and-evaluation' //For non-commercial use only.
+                      }
                     });
-                };//End function, "displayHotPreferredTimes".
+                };//End function, "displayTablePreferredTimes".
                 
-                var hotExistingMembers; //Variable for use after this function is called.
-                function displayHotExistingMembers(data){
+                var tableExistingMembers; //Variable for use after this function is called.
+                function displayTableExistingMembers(data){
                     const container = document.querySelector('#divPageContent #divMembers');
                     
-                    hotExistingMembers = new Handsontable(container, {
+                    tableExistingMembers = new EditableTable(container, {
                       data: data,
                       colHeaders: ['Select?','','Home Event Title', 'Name'],
                       columns: [{data: '', type: 'checkbox' }, // column 0 
@@ -306,62 +302,54 @@
                                 { data: '' }, // column 2 
                                 { data: '' } // column 3 
                                ],
-                      hiddenColumns: { columns: [1], indicators: false },        
+                      hiddenColumns: { columns: [1] }, //Hide the "ID" column (its data is kept).
                       rowHeaders: true,
                       width: 520,
-                      autoWrapRow: true,
-                      autoWrapCol: true,                   
-                      autoRowSize: true,
-                      columnSorting: true,
-                      filters: false,
-                      dropdownMenu: false,
-                      readOnly: false, //Ensure the table is editable.
-                      disableVisualSelection: false, //Allow cell selections, which also enable hooks.
-                      afterOnCellMouseDown: function(event, coords){
-                         if(coords.col === 0){
-                            //Change "Save Event" button color to red: 
-                            $("#divPageContent .btnSaveGeneralEvent").css("background-color", "red");
-                         }
-                      },
-                      licenseKey: 'non-commercial-and-evaluation' //For non-commercial use only.
-                    });
-                                        
-                };//End function, "displayHotExistingMembers".
-                
-                var hotExistingResources; //Variable for use after this function is called.
-                function displayHotExistingResources(data){
-                    const container = document.querySelector('#divPageContent #divResources');
-                    
-                    hotExistingResources = new Handsontable(container, {
-                      data: data,
-                      colHeaders: ['Select?','','Home Event Title', 'Name'],
-                      columns: [{data: '', type: 'checkbox' }, // column 0 
-                                { data: null }, // column 1 (hidden) 
-                                { data: '' }, // column 2 
-                                { data: '' } // column 3 
-                               ],
-                      hiddenColumns: { columns: [1], indicators: false },        
-                      rowHeaders: true,
-                      width: 520,
+                      height: 150, //The container's fixed height: the table scrolls within it.
                       autoWrapRow: true,
                       autoWrapCol: true,
-                      autoRowSize: true,
                       columnSorting: true,
-                      filters: false,
-                      dropdownMenu: false,
                       readOnly: false, //Ensure the table is editable.
-                      disableVisualSelection: false, //Allow cell selections, which also enable hooks.
                       afterOnCellMouseDown: function(event, coords){
                          if(coords.col === 0){
                             //Change "Save Event" button color to red:
                             $("#divPageContent .btnSaveGeneralEvent").css("background-color", "red");
                          }
-                      },
-                      licenseKey: 'non-commercial-and-evaluation' //For non-commercial use only.
+                      }
                     });
-                };//End function, "displayHotExistingResources".
+                                        
+                };//End function, "displayTableExistingMembers".
                 
-                /**   Refreshes the Preferred Times Handsontable from the database.
+                var tableExistingResources; //Variable for use after this function is called.
+                function displayTableExistingResources(data){
+                    const container = document.querySelector('#divPageContent #divResources');
+                    
+                    tableExistingResources = new EditableTable(container, {
+                      data: data,
+                      colHeaders: ['Select?','','Home Event Title', 'Name'],
+                      columns: [{data: '', type: 'checkbox' }, // column 0 
+                                { data: null }, // column 1 (hidden) 
+                                { data: '' }, // column 2 
+                                { data: '' } // column 3 
+                               ],
+                      hiddenColumns: { columns: [1] }, //Hide the "ID" column (its data is kept).
+                      rowHeaders: true,
+                      width: 520,
+                      height: 150, //The container's fixed height: the table scrolls within it.
+                      autoWrapRow: true,
+                      autoWrapCol: true,
+                      columnSorting: true,
+                      readOnly: false, //Ensure the table is editable.
+                      afterOnCellMouseDown: function(event, coords){
+                         if(coords.col === 0){
+                            //Change "Save Event" button color to red:
+                            $("#divPageContent .btnSaveGeneralEvent").css("background-color", "red");
+                         }
+                      }
+                    });
+                };//End function, "displayTableExistingResources".
+                
+                /**   Refreshes the Preferred Times table from the database.
                  * Should an error occur, it is displayed in an alert and in "divPageContent".
                  */
                 function displayMainSelectionsFromDb(){
@@ -381,8 +369,8 @@
                                     $('#divPageContent #txtDuration').val(objResp.event.duration);
                                     $('#divPageContent #txtMaxOccurences').val(objResp.event.maxOccurences);
                                     
-                                    //Load "Preferred Times" HOT:
-                                    //---------------------------
+                                    //Load "Preferred Times" table:
+                                    //-----------------------------
                                     var data = JSON.parse(objResp.event.preferredTimes);
 
                                     const columns = Object.keys(data[0]).map((key, index) => {
@@ -390,23 +378,23 @@
                                         data: key,
                                         type: index === 0 ? 'text' : 'checkbox',
                                         width: index === 0 ? undefined : 120,
-                                        className: index === 0 ? undefined : 'htCenter',
+                                        className: index === 0 ? undefined : 'et-center',
                                         title: key.charAt(0).toUpperCase() + key.slice(1)
                                       };
                                     });    
                                     
-                                    hotPreferredTimes.updateSettings({
+                                    tablePreferredTimes.updateSettings({
                                       data: data,
                                       columns: columns,
                                       colHeaders: columns.map(c => c.title)
                                     });                         
                                     
-                                    //Populate Handsontable with all Members and current selections:
-                                    //--------------------------------------------------------------
+                                    //Populate table with all Members and current selections:
+                                    //-------------------------------------------------------
                                     displayAllMembersWithCurrentSelections();
                                     
-                                    //Populate Handsontable with all Resources and current selections:
-                                    //----------------------------------------------------------------
+                                    //Populate table with all Resources and current selections:
+                                    //---------------------------------------------------------
                                     displayAllResourcesWithCurrentSelections();
                                     
                                }else{
@@ -420,7 +408,7 @@
                     
                 }//End function, "displayMainSelectionsFromDb".
 
-               /**   Display all Members in a Handsontable, showing their home Proposal titles.
+               /**   Display all Members in a table, showing their home Proposal titles.
                 * Also, show current selections in checkbox column.
                 */
                 function displayAllMembersWithCurrentSelections(){
@@ -441,12 +429,11 @@
                                         width: index === 0 ? 100: 
                                                index === 1 ? undefined:
                                                index === 2 ? 200: 150, 
-                                        className: index === 0 ? 'htCenter':
-                                                   index === 2 ? 'htWrap': 'htWrap'
+                                        className: index === 0 ? 'et-center': undefined //(Text wraps by default.)
                                       };
                                     });    
 
-                                    hotExistingMembers.updateSettings({
+                                    tableExistingMembers.updateSettings({
                                       data: data,
                                       columns: columns
                                     });   
@@ -465,7 +452,7 @@
                 }//End function, "displayAllMembers".
 
                /**   Show the currently selected Members
-                * in the Handsontable.
+                * in the table.
                 */
                 function showSelectedMembers(){
                     $.post('/TEST/EventSchedule/Admin/General_Event_Editor_backend.php',
@@ -480,7 +467,7 @@
                                     var arySelectedIDs = objResp.arySelectedIDs;
                                     
                                     arySelectedIDs.forEach(function(idValue) {
-                                        searchForIdAndCheckItInHot(hotExistingMembers, idValue);
+                                        searchForIdAndCheckItInTable(tableExistingMembers, idValue);
                                     });                                
 
                                 }else{
@@ -493,7 +480,7 @@
                         });                    
                 }//End function, "showSelectedMembers()".
 
-               /**   Display all Resources in a Handsontable, showing their home Proposal titles.
+               /**   Display all Resources in a table, showing their home Proposal titles.
                 * Also, show current selections in checkbox column.
                 */
                 function displayAllResourcesWithCurrentSelections(){
@@ -514,12 +501,11 @@
                                         width: index === 0 ? 100: 
                                                index === 1 ? undefined:
                                                index === 2 ? 200: 150, 
-                                        className: index === 0 ? 'htCenter':
-                                                   index === 2 ? 'htWrap': 'htWrap'
+                                        className: index === 0 ? 'et-center': undefined //(Text wraps by default.)
                                       };
                                     });    
 
-                                    hotExistingResources.updateSettings({
+                                    tableExistingResources.updateSettings({
                                       data: data,
                                       columns: columns
                                     });      
@@ -538,7 +524,7 @@
                 }//End function, "displayAllResources".
                 
                /**   Show the currently selected Members
-                * in the Handsontable.
+                * in the table.
                 */
                 function showSelectedResources(){
                     $.post('/TEST/EventSchedule/Admin/General_Event_Editor_backend.php',
@@ -553,7 +539,7 @@
                                     var arySelectedIDs = objResp.arySelectedIDs;
                                     
                                     arySelectedIDs.forEach(function(idValue) {
-                                        searchForIdAndCheckItInHot(hotExistingResources, idValue);
+                                        searchForIdAndCheckItInTable(tableExistingResources, idValue);
                                     });                                
 
                                 }else{
@@ -575,7 +561,7 @@
                  *     of the update: "returnMessage.msg".
                  */
                 function updateMemberSelections(returnMessage){
-                    const arySelectedMemberIDs = JSON.stringify(getCheckedIdsInHot(hotExistingMembers));
+                    const arySelectedMemberIDs = JSON.stringify(getCheckedIdsInTable(tableExistingMembers));
                     
                     $.post('/TEST/EventSchedule/Admin/General_Event_Editor_backend.php',
                     {
@@ -605,7 +591,7 @@
                  *     of the update: "returnMessage.msg".
                  */
                 function updateResourceSelections(returnMessage){
-                    const arySelectedResourceIDs = JSON.stringify(getCheckedIdsInHot(hotExistingResources));
+                    const arySelectedResourceIDs = JSON.stringify(getCheckedIdsInTable(tableExistingResources));
                     
                     $.post('/TEST/EventSchedule/Admin/General_Event_Editor_backend.php',
                     {
@@ -632,10 +618,10 @@
                 }//End function, "updateResourceSelections".
                 
                 /**   Javascript utility to search for an "ID" value and check
-                 * its row in a Handsontable, marking it as selected.
+                 * its row in a table, marking it as selected.
                  */
-                function searchForIdAndCheckItInHot(hot, searchValue) {
-                    const sourceData = hot.getSourceData(); // Array of objects
+                function searchForIdAndCheckItInTable(table, searchValue) {
+                    const sourceData = table.getSourceData(); // Array of objects
                     const updatedData = sourceData.map(row => {
                         const newRow = { ...row }; // Shallow copy
 
@@ -650,19 +636,19 @@
                         return newRow;
                     });
 
-                  hot.loadData(updatedData);
+                  table.loadData(updatedData);
                 }
                 
                 /**   Returns an array of ID values from those rows that have been
-                 * checked in the passed-in Members or Resources Handsontable.
+                 * checked in the passed-in Members or Resources table.
                  * 
-                 * @param {Handsontable} hot -- Either the Members or Resources 
-                 *    Handsontable.
+                 * @param {EditableTable} table -- Either the Members or Resources 
+                 *    table.
                  * @returns {Array} -- A single-subscripted array of ID values
                  *    that have been checked.
                  */
-                function getCheckedIdsInHot(hot){
-                    const sourceData = hot.getSourceData();
+                function getCheckedIdsInTable(table){
+                    const sourceData = table.getSourceData();
                     
                     var aryCheckedIds = [];
                     sourceData.forEach(function(row){
@@ -687,7 +673,7 @@
                     var duration = $('#txtDuration').val();
                     var maxOccurences = $('#txtMaxOccurences').val();
                     var checkedPreferredTimes = false;
-                    hotPreferredTimes.getData().forEach(function(aryRow){
+                    tablePreferredTimes.getData().forEach(function(aryRow){
                         aryRow.forEach(function(col){
                             if(col === true){
                                 checkedPreferredTimes = true;

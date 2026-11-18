@@ -8,8 +8,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="/TEST/CSS/handsontable.min.css?v=15.2" />
-        <link rel="stylesheet" href="/TEST/CSS/ht-theme-main.min.css?v=15.2" />
+        <link rel="stylesheet" href="/TEST/CSS/EditableTable.css?v=1.2" />
         <style>
             #divPageContent{
                 position: relative;
@@ -38,7 +37,7 @@
                 margin-bottom: 15px;
             }
         </style>
-        <script src="/TEST/JavaScript/handsontable.full.min.js?v=15.2"></script>
+        <script src="/TEST/JavaScript/EditableTable.js?v=1.2"></script>
         <title>Reference Table Editor: "Roles"</title>
         
         <script src="/TEST/JavaScript/JQuery371.js"></script>
@@ -50,13 +49,13 @@
                         mode: 'displayRolesScreen'
                     }, 
                     function(resp){
-                        //Initially, display an empty HOT, and initialize the "hot" variable:
-                        //-------------------------------------------------------------------
+                        //Initially, display an empty table, and initialize the "table" variable:
+                        //-----------------------------------------------------------------------
                         $("#divPageContent").html(resp);
-                        displayHandsontable([]);
+                        displayTable([]);
                         
-                        //Now populate the HOT with Roles:
-                        //--------------------------------
+                        //Now populate the table with Roles:
+                        //----------------------------------
                         displayAllRolesFromDb();
                 });
                 
@@ -65,37 +64,33 @@
                 const extraPadding = 50; // Extra space for UI elements
 
                 function getDynamicHeight() {
-                    const rowCount = hot.countRows();
+                    const rowCount = table.countRows();
                     return Math.min(rowHeight * rowCount + extraPadding, 500); // Max height 500px
                 }
                 
-                var hot; //Variable for use after this function is called.
-                function displayHandsontable(data){
+                var table; //Variable for use after this function is called.
+                function displayTable(data){
                     const container = document.querySelector('#divPageContent #divRoles');
                     
-                    hot = new Handsontable(container, {
+                    table = new EditableTable(container, {
                       data: data,
                       rowHeaders: true,
                       colHeaders: ['Include?','','Name'],
-                      hiddenColumns: { columns: [1], indicators: false },        
+                      hiddenColumns: { columns: [1] }, //Hide the "ID" column (its data is kept).
                       width: 350,
                       autoWrapRow: true,
                       autoWrapCol: true,
                       columnSorting: true, //Enable sorting.
-                      filters: false,
-                      dropdownMenu: false,
                       stretchH: 'all', //Stretch columns for consistent alignment.
                       readOnly: false, //Ensure the table is editable.
-                      disableVisualSelection: false, //Allow cell selections, which also enable hooks.
                       columns: [
                         {type: 'checkbox', width: 55}, //Checkbox column.
                         {type: 'text'},
                         {type: 'text'}
-                      ],
-                      licenseKey: 'non-commercial-and-evaluation' //For non-commercial use only.
+                      ]
                     });
 
-                    /**   Scans the HOT for rows that have been checked (first column). 
+                    /**   Scans the table for rows that have been checked (first column). 
                      * Stores each row found into an array of rows for use by the
                      * saving or deleting functions.
                      * 
@@ -105,37 +100,50 @@
                         var checkedRows = [];
 
                         //Loop through all rows:
-                        for (let rowIndex = 0; rowIndex < hot.countRows(); rowIndex++) {
-                            const isChecked = hot.getDataAtCell(rowIndex, 0); //Get the value from the checkbox column.
+                        for (let rowIndex = 0; rowIndex < table.countRows(); rowIndex++) {
+                            const isChecked = table.getDataAtCell(rowIndex, 0); //Get the value from the checkbox column.
 
                             if (isChecked === true) { //Check if the checkbox is marked.
-                                checkedRows.push(hot.getDataAtRow(rowIndex).slice(1)); //Exclude the checkbox column.
+                                checkedRows.push(table.getDataAtRow(rowIndex).slice(1)); //Exclude the checkbox column.
                             }
                         }
                         return checkedRows;
                     }
                     
-                    /**   Scans the HOT for rows that have NOT been checked. 
+                    /**   Scans the table for rows that have NOT been checked. 
                      * Stores each row found into an array of rows for use by the
                      * deleting functions.
                      * 
                      * Note: Here the checkbox column is preserved, because
-                     *       the data will be used to populate the HOT.
+                     *       the data will be used to populate the table.
                      * 
-                     * @returns {Array of Arrays} Data to be restored in HOT.
+                     * @returns {Array of Arrays} Data to be restored in table.
                      *                      */
                     function getUnCheckedRows() {
                         var unCheckedRows = [];
 
                         //Loop through all rows:
-                        for (let rowIndex = 0; rowIndex < hot.countRows(); rowIndex++) {
-                            const isChecked = hot.getDataAtCell(rowIndex, 0); //Get the value from the checkbox column.
+                        for (let rowIndex = 0; rowIndex < table.countRows(); rowIndex++) {
+                            const isChecked = table.getDataAtCell(rowIndex, 0); //Get the value from the checkbox column.
 
                             if (isChecked === false) { //Check if the checkbox is NOT marked.
-                                unCheckedRows.push(hot.getDataAtRow(rowIndex)); //Exclude the checkbox column.
+                                unCheckedRows.push(table.getDataAtRow(rowIndex)); //Exclude the checkbox column.
                             }
                         }
                         return unCheckedRows;
+                    }
+                    
+                    /**   Sorts rows alphabetically by name (column 2), ignoring
+                     * upper/lower case. The array is sorted in place.
+                     * 
+                     * @param {Array of Arrays} aryData -- Rows of [checkbox, ID, name].
+                     * @returns {Array of Arrays} The same array, now sorted.
+                     *                      */
+                    function sortRowsByName(aryData) {
+                        return aryData.sort(function(rowA, rowB){
+                            return String(rowA[2] ?? '').localeCompare(String(rowB[2] ?? ''),
+                                undefined, { sensitivity: 'base' });
+                        });
                     }
                     
                     $('#divPageContent').on('click', '#btnSaveCheckedRows', function(){
@@ -183,8 +191,8 @@
                                     if(resp){
                                         alert('Checked rows deleted ok.');
                                         const aryData = getUnCheckedRows();
-                                        hot.loadData(aryData);
-                                        hot.updateSettings({ height: getDynamicHeight() });
+                                        table.loadData(aryData);
+                                        table.updateSettings({ height: getDynamicHeight() });
                                         
                                     }else{
                                         alert('Error: Problem deleting checked rows.');
@@ -207,10 +215,11 @@
                                 try{
                                     if(resp){
                                         alert('New Role saved ok.');
-                                        var aryData = hot.getData();
+                                        var aryData = table.getData();
                                         aryData.push([false, resp, newRole]);
-                                        hot.loadData(aryData);
-                                        hot.updateSettings({ height: getDynamicHeight() });
+                                        sortRowsByName(aryData); //Put the new entry in alphabetical order.
+                                        table.loadData(aryData);
+                                        table.updateSettings({ height: getDynamicHeight() });
                                         $('#divPageContent #txtNewRole').val('');
                                         
                                     }else{
@@ -222,9 +231,9 @@
                         });
                     });
                     
-                }//End function, "displayHandsontable".
+                }//End function, "displayTable".
                 
-                /**   Refreshes the Handsontable from the database.
+                /**   Refreshes the table from the database.
                  * Should an error occur, it is displayed in an
                  * alert and in "divPageContent".
                  */
@@ -244,8 +253,8 @@
                                             aryData.push([false, item.ID, item.name]); //Push [false, ID, name] into the array.
                                         }
                                     });
-                                    hot.loadData(aryData);
-                                    hot.updateSettings({ height: getDynamicHeight() });
+                                    table.loadData(aryData);
+                                    table.updateSettings({ height: getDynamicHeight() });
                                 }    
 
                             }catch(error){

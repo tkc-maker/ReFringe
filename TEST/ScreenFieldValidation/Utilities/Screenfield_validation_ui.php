@@ -16,7 +16,7 @@ class Screenfield_validation_ui{
         <div id=\"divWarning\">WARNING: Changing the screenfield validation fields or deleting them may allow 
         for bad data to be entered. If this happens, review and edit your rules carefully, paying extra attention 
         to the entries for \"Rule\", \"Regex\", and making sure that the \"Error Message\" is appropriate.</div><br>
-        <div id=\"divScreenfieldValidation\" class=\"ht-theme-main-dark\"></div>
+        <div id=\"divScreenfieldValidation\" class=\"et-theme-dark\"></div>
         <div id=\"divButtons\">
             <table><tr><td colspan=\"2\"><input type=\"button\" id=\"btnSaveCheckedRows\" value=\"Save Checked Rows\"/>
             <input type=\"button\" id=\"btnDeleteCheckedRows\" value=\"Delete Checked Rows\"/></td></tr>

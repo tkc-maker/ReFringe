@@ -8,8 +8,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="/TEST/CSS/handsontable.min.css?v=15.2" />
-        <link rel="stylesheet" href="/TEST/CSS/ht-theme-main.min.css?v=15.2" />
+        <link rel="stylesheet" href="/TEST/CSS/EditableTable.css?v=1.2" />
         <style>
             #divPageContent{
                 position: relative;
@@ -62,7 +61,7 @@
                 width: 100%;
             }
         </style>
-        <script src="/TEST/JavaScript/handsontable.full.min.js?v=15.2"></script>
+        <script src="/TEST/JavaScript/EditableTable.js?v=1.2"></script>
         <title>Reference Table Editor: "Screenfield_validation"</title>
         
         <script src="/TEST/JavaScript/JQuery371.js"></script>
@@ -75,13 +74,13 @@
                         mode: 'displayScreenfieldValidationScreen'
                     }, 
                     function(resp){
-                        //Initially, display an empty HOT, and initialize the "hot" variable:
-                        //-------------------------------------------------------------------
+                        //Initially, display an empty table, and initialize the "table" variable:
+                        //-----------------------------------------------------------------------
                         $("#divPageContent").html(resp);
-                        displayHandsontable([]);
+                        displayTable([]);
                         
-                        //Now populate the HOT with Screenfield Validations:
-                        //--------------------------------------------------
+                        //Now populate the table with Screenfield Validations:
+                        //----------------------------------------------------
                         displayAllScreenfieldValidationsFromDb();
                 });
                 
@@ -90,38 +89,34 @@
                 const extraPadding = 50; // Extra space for UI elements
 
                 function getDynamicHeight() {
-                    const rowCount = hot.countRows();
+                    const rowCount = table.countRows();
                     return Math.min(rowHeight * rowCount + extraPadding, 500); // Max height 500px
                 }
                 
-                var hot; //Variable for use after this function is called.
-                function displayHandsontable(data){
+                var table; //Variable for use after this function is called.
+                function displayTable(data){
                     const container = document.querySelector('#divPageContent #divScreenfieldValidation');
                     
-                    hot = new Handsontable(container, {
+                    table = new EditableTable(container, {
                       data: data,
                       rowHeaders: true,
                       colHeaders: ['Include?','','Rule', 'Regex', 'Error Message'],
-                      hiddenColumns: { columns: [1], indicators: false },        
+                      hiddenColumns: { columns: [1] }, //Hide the "ID" column (its data is kept).
                       width: 1100,
                       autoWrapRow: true,
                       autoWrapCol: true,
                       columnSorting: true, //Enable sorting.
-                      filters: false,
-                      dropdownMenu: false,
                       readOnly: false, //Ensure the table is editable.
-                      disableVisualSelection: false, //Allow cell selections, which also enable hooks.
                       columns: [
-                        {type: 'checkbox', width: 100, className: "htCenter"}, //Checkbox column.
+                        {type: 'checkbox', width: 100, className: "et-center"}, //Checkbox column.
                         {type: 'text'},
                         {type: 'text', width: 200},
                         {type: 'text', width: 300},
                         {type: 'text', width: 435}
-                      ],
-                      licenseKey: 'non-commercial-and-evaluation' //For non-commercial use only.
+                      ]
                     });
 
-                    /**   Scans the HOT for rows that have been checked (first column). 
+                    /**   Scans the table for rows that have been checked (first column). 
                      * Stores each row found into an array of rows for use by the
                      * saving or deleting functions.
                      * 
@@ -131,34 +126,34 @@
                         var checkedRows = [];
 
                         //Loop through all rows:
-                        for (let rowIndex = 0; rowIndex < hot.countRows(); rowIndex++) {
-                            const isChecked = hot.getDataAtCell(rowIndex, 0); //Get the value from the checkbox column.
+                        for (let rowIndex = 0; rowIndex < table.countRows(); rowIndex++) {
+                            const isChecked = table.getDataAtCell(rowIndex, 0); //Get the value from the checkbox column.
 
                             if (isChecked === true) { //Check if the checkbox is marked.
-                                checkedRows.push(hot.getDataAtRow(rowIndex).slice(1)); //Exclude the checkbox column.
+                                checkedRows.push(table.getDataAtRow(rowIndex).slice(1)); //Exclude the checkbox column.
                             }
                         }
                         return checkedRows;
                     }
                     
-                    /**   Scans the HOT for rows that have NOT been checked. 
+                    /**   Scans the table for rows that have NOT been checked. 
                      * Stores each row found into an array of rows for use by the
                      * deleting functions.
                      * 
                      * Note: Here the checkbox column is preserved, because
-                     *       the data will be used to populate the HOT.
+                     *       the data will be used to populate the table.
                      * 
-                     * @returns {Array of Arrays} Data to be restored in HOT.
+                     * @returns {Array of Arrays} Data to be restored in table.
                      *                      */
                     function getUnCheckedRows() {
                         var unCheckedRows = [];
 
                         //Loop through all rows:
-                        for (let rowIndex = 0; rowIndex < hot.countRows(); rowIndex++) {
-                            const isChecked = hot.getDataAtCell(rowIndex, 0); //Get the value from the checkbox column.
+                        for (let rowIndex = 0; rowIndex < table.countRows(); rowIndex++) {
+                            const isChecked = table.getDataAtCell(rowIndex, 0); //Get the value from the checkbox column.
 
                             if (isChecked === false) { //Check if the checkbox is NOT marked.
-                                unCheckedRows.push(hot.getDataAtRow(rowIndex)); //Exclude the checkbox column.
+                                unCheckedRows.push(table.getDataAtRow(rowIndex)); //Exclude the checkbox column.
                             }
                         }
                         return unCheckedRows;
@@ -256,9 +251,9 @@
                         });
                     });
                     
-                }//End function, "displayHandsontable".
+                }//End function, "displayTable".
                 
-                /**   Refreshes the Handsontable from the database.
+                /**   Refreshes the table from the database.
                  * Should an error occur, it is displayed in an
                  * alert and in "divPageContent".
                  */
@@ -279,8 +274,8 @@
                                             aryData.push([false, item.ID, item.rule, item.regex, item.errMsg]); //Push [false, <other fields>] into the array.
                                         }
                                     });
-                                    hot.loadData(aryData);
-                                    hot.updateSettings({ height: getDynamicHeight() });
+                                    table.loadData(aryData);
+                                    table.updateSettings({ height: getDynamicHeight() });
                                 }    
 
                             }catch(error){

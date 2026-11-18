@@ -32,7 +32,7 @@ class roles_ui{
         &nbsp;&nbsp;&nbsp;R o l e s&nbsp;&nbsp;&nbsp;( A d m i n )</h1><br>
         <div id=\"divWarning\">WARNING: Changing the names of roles or deleting them may lock you out of screens, as if you don't have
         permissions to access them. If this happens, consult a PHP programmer to fix the problem.</div><br>
-        <div id=\"divRoles\" class=\"ht-theme-main-dark\"></div>
+        <div id=\"divRoles\" class=\"et-theme-dark\"></div>
         <div id=\"divButtons\">
             <input type=\"button\" id=\"btnSaveCheckedRows\" value=\"Save Checked Rows\"/>
             <input type=\"button\" id=\"btnDeleteCheckedRows\" value=\"Delete Checked Rows\"/><br>

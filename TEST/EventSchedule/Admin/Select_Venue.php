@@ -12,19 +12,20 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="/TEST/CSS/handsontable.min.css?v=15.2" />
-        <link rel="stylesheet" href="/TEST/CSS/ht-theme-main.min.css?v=15.2" />
+        <link rel="stylesheet" href="/TEST/CSS/EditableTable.css?v=1.2" />
         <style>
             #divPageContent{
                 width: 100%;
                 text-align: left;
             }
             /* undo the dimming on all readOnly cells */
-            .htDimmed {
-              opacity: 1 !important;
-              color: inherit !important;
-              background-color: inherit !important;
-              cursor: default !important; /* optional: remove the "not-allowed" cursor */
+            #divAllCheckedVenues td.et-readonly {
+              color: inherit;
+            }
+            .qaScrollBox{
+                height: 100px; /* Constrain height. */
+                overflow-y: auto; /* Vertical scrollbar for overflowing content. */
+                text-align: left;
             }
             h1{
                 display: flex;
@@ -37,7 +38,7 @@
                 background-color: orange;
             }
         </style>
-        <script src="/TEST/JavaScript/handsontable.full.min.js?v=15.2"></script>
+        <script src="/TEST/JavaScript/EditableTable.js?v=1.2"></script>
         <title>Select a Checked Venue</title>
         
         <script src="/TEST/JavaScript/JQuery371.js"></script>
@@ -52,74 +53,62 @@
                     }, 
                     function(resp){
                         $('#divPageContent').html(resp);
-                        //Initially, display an empty HOT, and initialize the "hot" variable:
-                        displayHandsontable([]);
-                        loadHandsontable();
+                        //Initially, display an empty table, and initialize the "table" variable:
+                        displayTable([]);
+                        loadTable();
                 });                
                 
-                var hot; //variable for use after this function is called.
-                function displayHandsontable(data){
+                var table; //variable for use after this function is called.
+                function displayTable(data){
                     const container = $('#divPageContent #divAllCheckedVenues')[0];
                     const QandAcolVal = 3;
                     
-                    hot = new Handsontable(container, {
+                    table = new EditableTable(container, {
                       data: data,
                       rowHeaders: true,
                       colHeaders: ['Select?','','Venue Name','Questions/Answers'],
-                      hiddenColumns: { columns: [1], indicators: false },        
+                      hiddenColumns: { columns: [1] }, //Hide the "ID" column (its data is kept).
+                      width: 'fit-content', //Just wide enough for the visible columns.
                       autoWrapRow: true,
                       autoWrapCol: true,
                       columnSorting: true, //Enable sorting.
-                      filters: true, //Enable filtering.
-                      dropdownMenu: false, //Enable/disable a UI dropdown for filtering/sorting.
-                      disableVisualSelection: false, //Allow cell selections, which also enable hooks.
                       columns: [
                         {
                             data: 'selected',
                             renderer: radioRenderer,
                             readOnly: true        // we handle clicks in a hook
                         },
-                        { data: 'ID',   type: 'numeric', readOnly: true },
-                        { data: 'name', type: 'text', readOnly: true },
-                        { data: 'questions_answers', type: 'text', readOnly: true, width: 500,
-                            renderer: function(instance, td, row, col, prop, value, cellProperties) {
-                                // Set new innerHTML
-                                const processedValue = `${value}`;
-
-                                //Pass the processed value to HtmlRenderer:
-                                Handsontable.renderers.HtmlRenderer.apply(this, [instance, td, row, col, prop, processedValue, cellProperties]);                        
-
-                                td.style.minHeight = '100px'; //Constrain height.
-                                td.style.maxHeight = '100px'; //Constrain height.
-                                td.style.overflowY = 'auto'; //Enable vertical scrollbars for overflowing content.
-                                td.style.textAlign = 'left';
-                                td.style.display = 'block'; //Ensure the cell acts as a block element.
-
-                                return td;
+                        { data: 'ID', readOnly: true },
+                        { data: 'name', type: 'text', readOnly: true, width: 200 },
+                        { data: 'questions_answers', type: 'html', readOnly: true, width: 500,
+                            renderer: function(instance, td, row, col, prop, value) {
+                                //Show the Questions/Answers HTML (basic formatting only)
+                                //in a scrolling box:
+                                const box = document.createElement('div');
+                                box.className = 'qaScrollBox';
+                                EditableTable.setSafeHtml(box, value);
+                                td.appendChild(box);
                             }
                         }
-                      ],
-                      licenseKey: 'non-commercial-and-evaluation' //For non-commercial use only.
+                      ]
                     });
                     
                     //Renders a radio-button column:
-                    function radioRenderer( hot, td, row, col, prop, value ){
-                        td.innerHTML = `<input
-                            type="radio"
-                            name="ht-radio"
-                            class="radioButton"
-                            ${value ? 'checked' : ''}
-                        />`;
-
-                        return td;
+                    function radioRenderer(instance, td, row, col, prop, value){
+                        const radio = document.createElement('input');
+                        radio.type = 'radio';
+                        radio.name = 'venueRadio';
+                        radio.className = 'radioButton';
+                        radio.checked = Boolean(value);
+                        td.appendChild(radio);
                     }
 
                     //Responds to clicking a radio-button in traditional fashion:
-                    hot.addHook('afterOnCellMouseUp', (event, coords) => {
+                    table.addHook('afterOnCellMouseUp', (event, coords) => {
                         if (coords.col !== 0) return;
 
                         const clickedRow = coords.row;
-                        const totalRows  = hot.countRows();
+                        const totalRows  = table.countRows();
 
                         // build a batch of updates: only the clicked row → true, others → false
                         const updates = [];
@@ -128,16 +117,13 @@
                         }
 
                         // apply them in one go
-                        hot.setDataAtRowProp(updates);
+                        table.setDataAtRowProp(updates);
                         
                         //On clicking a radio-button, color the "Save Venue Selection" button red:
                         $("#divPageContent .btnSaveVenueSelection").css("background-color", "red");
-                        
-                        // prevent the native editor from ever appearing
-                        event.stopImmediatePropagation();
                     });
                     
-                };//End function, "displayHandsontable".
+                };//End function, "displayTable".
 
                 $("#divPageContent").on("click", ".btnSaveVenueSelection", function() {
                     var Venues_ID = getTickedVenueId();
@@ -172,10 +158,10 @@
                     });  
                 });    
                    
-               /**   Populates the Handsontable with all Venues having the field,
+               /**   Populates the table with all Venues having the field,
                 * "Venues.venue_check" == true.
                 */
-                function loadHandsontable(){
+                function loadTable(){
                     $.post('/TEST/EventSchedule/Admin/Select_Venue_backend.php',
                         {
                             mode: 'fetchAllCheckedVenues',
@@ -186,7 +172,7 @@
                             try{
                                 if(objResp.status !== 'false'){
                                     var data = objResp.allCheckedVenues;
-                                    hot.loadData(data);
+                                    table.loadData(data);
 
                                 }else{
                                     alert(objResp.errMsg);
@@ -198,7 +184,7 @@
                     });  
                 }
 
-                 /**   Scans the HOT for a row whose radio-button (first column) has been ticked. 
+                 /**   Scans the table for a row whose radio-button (first column) has been ticked. 
                   * Returns the Venues_ID (second column). If no ticks have been found, 0 is 
                   * returned.
                   * 
@@ -209,11 +195,11 @@
                      var tickedRow = 0;
 
                      // Loop through all rows
-                     for (let rowIndex = 0; rowIndex < hot.countRows(); rowIndex++) {
-                         const isTicked = hot.getDataAtCell(rowIndex, 0); //Get the value from the radio-button column.
+                     for (let rowIndex = 0; rowIndex < table.countRows(); rowIndex++) {
+                         const isTicked = table.getDataAtCell(rowIndex, 0); //Get the value from the radio-button column.
 
                          if (isTicked === true) { //Check if the radio-button is ticked.
-                             var row = hot.getDataAtRow(rowIndex);
+                             var row = table.getDataAtRow(rowIndex);
 
                              tickedRow = row[1];
                              break;

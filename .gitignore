@@ -27,10 +27,6 @@ Tareas Diarias/
 # Node packages (if used)
 node_modules/
 
-# Handsontable
-TEST/JavaScript/handsontable.full.min.js
-TEST/JavaScript/hyperformula.full.min.js
-
 # Composer dependencies (optional)
 TEST/vendor/
 
@@ -45,16 +41,6 @@ TEST/forum/
 # Editor files
 .vscode/
 .idea/
-
-# Test files
-Basic_DB_Test.php
-TEST/Handsontable_CSV_Export_Test.html
-TEST/Handsontable_Hyperformula_Test.html
-TEST/Handsontable_Loaded_From_View_Test.php
-TEST/Handsontable_ScrollToSearchTerm_Test.html
-TEST/Handsontable_Test.html
-TEST/Landing_Page.html
-HelloVourld.php
 
 # Other files with PII:
 TEST/ProposalDetails/Admin/Help/Proposal_Editor_Admin_Help.html

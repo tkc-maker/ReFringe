@@ -115,7 +115,7 @@ class Search_Proposals_ui{
                 </td>
             </tr>
         </table>
-        <div id=\"divSearchResults\" class=\"ht-theme-main-dark\"></div>
+        <div id=\"divSearchResults\" class=\"et-theme-dark\"></div>
         <div id=\"buttons\">
             <input type=\"button\" id=\"btnClearVisibleHighlights\" value=\"Clear Visible Highlights\"/>
             <input type=\"button\" id=\"btnClearRefineCriteria\" value=\"Clear Refine Criteria\"/>

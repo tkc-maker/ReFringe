@@ -30,7 +30,7 @@ class genres_ui{
         echo "
         <h1>&nbsp;&nbsp;&nbsp;E D I T&nbsp;&nbsp;&nbsp;R E F E R E N C E&nbsp;&nbsp;&nbsp;T A B L E ,<br>
         &nbsp;&nbsp;&nbsp;G e n r e s&nbsp;&nbsp;&nbsp;( A d m i n )</h1><br>
-        <div id=\"divGenres\" class=\"ht-theme-main-dark\"></div>
+        <div id=\"divGenres\" class=\"et-theme-dark\"></div>
         <div id=\"divButtons\">
             <input type=\"button\" id=\"btnSaveCheckedRows\" value=\"Save Checked Rows\"/>
             <input type=\"button\" id=\"btnDeleteCheckedRows\" value=\"Delete Checked Rows\"/><br>
